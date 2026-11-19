@@ -1238,10 +1238,10 @@ Gunakan status berikut untuk memantau perkembangan:
 
 ### Phase 04 — Organization Management
 
-- [ ] Task 4.1 Organization API
-- [ ] Task 4.2 Organization Membership
-- [ ] Task 4.3 Frontend Organization Management
-- [ ] Task 4.4 Organization Authorization Testing
+- [x] Task 4.1 Organization API
+- [x] Task 4.2 Organization Membership
+- [x] Task 4.3 Frontend Organization Management
+- [x] Task 4.4 Organization Authorization Testing
 
 ### Phase 05 — Event Management
 

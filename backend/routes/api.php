@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\OrganizationController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
@@ -25,6 +26,17 @@ Route::prefix('v1')->group(function () {
         Route::middleware('role:SUPER_ADMIN')->group(function () {
             Route::put('/users/{user}/roles', [UserController::class, 'updateRoles']);
             Route::apiResource('users', UserController::class);
+        });
+
+        Route::middleware('role:SUPER_ADMIN,ORGANIZATION_ADMIN')->group(function () {
+            Route::get('/organizations', [OrganizationController::class, 'index']);
+            Route::post('/organizations', [OrganizationController::class, 'store']);
+            Route::get('/organizations/{organization}', [OrganizationController::class, 'show']);
+            Route::put('/organizations/{organization}', [OrganizationController::class, 'update']);
+            Route::get('/organizations/{organization}/members', [OrganizationController::class, 'members']);
+            Route::post('/organizations/{organization}/members', [OrganizationController::class, 'addMember']);
+            Route::put('/organizations/{organization}/members/{user}', [OrganizationController::class, 'updateMember']);
+            Route::delete('/organizations/{organization}/members/{user}', [OrganizationController::class, 'removeMember']);
         });
     });
 });

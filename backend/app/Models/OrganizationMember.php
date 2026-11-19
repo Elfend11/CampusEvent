@@ -10,6 +10,10 @@ class OrganizationMember extends Model
 {
     use HasFactory;
 
+    public const ROLE_ADMIN = 'ADMIN';
+
+    public const ROLE_MEMBER = 'MEMBER';
+
     protected $fillable = [
         'organization_id',
         'user_id',

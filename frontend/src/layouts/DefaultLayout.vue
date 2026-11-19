@@ -19,6 +19,12 @@ async function logout() {
 
       <nav class="app-nav">
         <RouterLink to="/">Beranda</RouterLink>
+        <RouterLink
+          v-if="auth.hasAnyRole(['SUPER_ADMIN', 'ORGANIZATION_ADMIN'])"
+          to="/organizations"
+        >
+          Organisasi
+        </RouterLink>
         <RouterLink v-if="auth.isAuthenticated" to="/dashboard">Dashboard</RouterLink>
         <RouterLink v-else to="/login">Masuk</RouterLink>
       </nav>

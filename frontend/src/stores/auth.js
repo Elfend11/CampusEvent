@@ -13,6 +13,7 @@ export const useAuthStore = defineStore('auth', {
     isAuthenticated: (state) => state.user !== null,
     roles: (state) => state.user?.roles ?? [],
     hasRole: (state) => (role) => state.user?.roles?.includes(role) ?? false,
+    hasAnyRole: (state) => (roles) => roles.some((role) => state.user?.roles?.includes(role)),
   },
   actions: {
     async fetchUser() {

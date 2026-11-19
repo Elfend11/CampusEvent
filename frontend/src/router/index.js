@@ -23,6 +23,18 @@ const router = createRouter({
       component: () => import('@/views/DashboardView.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/organizations',
+      name: 'organizations',
+      component: () => import('@/views/organizations/OrganizationsView.vue'),
+      meta: { requiresAuth: true, roles: ['SUPER_ADMIN', 'ORGANIZATION_ADMIN'] },
+    },
+    {
+      path: '/organizations/:id',
+      name: 'organization-detail',
+      component: () => import('@/views/organizations/OrganizationDetailView.vue'),
+      meta: { requiresAuth: true, roles: ['SUPER_ADMIN', 'ORGANIZATION_ADMIN'] },
+    },
   ],
 })
 
@@ -38,6 +50,10 @@ router.beforeEach(async (to) => {
   }
 
   if (to.meta.guestOnly && auth.isAuthenticated) {
+    return { name: 'dashboard' }
+  }
+
+  if (to.meta.roles && !to.meta.roles.some((role) => auth.roles.includes(role))) {
     return { name: 'dashboard' }
   }
 
