@@ -4,8 +4,8 @@
 **Project:** CampusEvent  
 **Project Name:** Integrated Campus Event & Ticketing Management System  
 **Document:** Development Roadmap & AI Execution Plan  
-**Version:** 1.0  
-**Status:** Approved  
+**Version:** 1.1  
+**Status:** Approved (Amendment 1)  
 **Development Strategy:** Sequential Task Execution  
 **Primary Objective:** Membangun sistem manajemen event dan tiket kampus secara bertahap, terstruktur, teruji, dan sesuai dengan seluruh dokumentasi proyek.
 
@@ -184,11 +184,13 @@ Pengembangan CampusEvent dibagi menjadi 11 tahap utama.
 - Menghindari penghapusan file yang masih digunakan.
 
 **Task 1.3 — Environment Setup**
-- Memastikan PHP dan Composer tersedia sesuai kebutuhan Laravel.
+- Memastikan PHP 8.3.x dan Composer tersedia sesuai kebutuhan Laravel.
+- Memverifikasi advisory keamanan Composer dan menentukan versi stabil yang digunakan sebelum instalasi dependency.
 - Memastikan Node.js dan npm tersedia.
 - Menyiapkan Laravel dan Vue.js 3 dengan Vite.
 - Menyiapkan konfigurasi lingkungan pengembangan.
-- Menyiapkan Axios dan Pinia.
+- Menyiapkan Axios, Pinia, dan Laravel Sanctum untuk Cookie-Based SPA Authentication.
+- Memastikan proyek berada pada folder kerja `C:\laragon\www\campusevent`.
 
 **Task 1.4 — Database Connection**
 - Menyiapkan database MySQL.
@@ -238,13 +240,15 @@ Pengembangan CampusEvent dibagi menjadi 11 tahap utama.
 Membuat migration secara bertahap untuk:
 
 1. `users`
-2. `organizations`
-3. `organization_members`
-4. `events`
-5. `registrations`
-6. `payments`
-7. `tickets`
-8. `attendances`
+2. `user_roles`
+3. `organizations`
+4. `organization_members`
+5. `events`
+6. `event_officers`
+7. `registrations`
+8. `payments`
+9. `tickets`
+10. `attendances`
 
 Migration harus mengikuti urutan ketergantungan relasi.
 
@@ -269,15 +273,26 @@ Menerapkan:
 - Index.
 - Nullable dan default value sesuai kebutuhan.
 
+Constraint wajib:
+
+- `user_roles`: UNIQUE(user_id, role).
+- `event_officers`: UNIQUE(event_id, user_id) dan INDEX(user_id).
+- `events`: `location` dan `category` wajib terisi; INDEX(status, category).
+- `registrations`: `expires_at` nullable; INDEX(status, expires_at).
+- `payments`: UNIQUE(registration_id).
+- `tickets`: UNIQUE(registration_id), UNIQUE(ticket_code), UNIQUE(token_hash).
+- `attendances`: UNIQUE(ticket_id).
+
 **Task 2.5 — Factory and Seeder**
 
 Membuat Factory untuk kebutuhan data pengujian.
 
 Membuat Seeder untuk:
 
-- Role pengguna.
+- Role pengguna pada `user_roles` (satu akun dapat memiliki beberapa role).
 - Akun pengujian.
 - Organisasi contoh.
+- Penugasan petugas check-in contoh pada `event_officers`.
 - Data event contoh apabila diperlukan.
 
 Data seeder harus bersifat aman dan tidak menggunakan kredensial produksi.
@@ -342,20 +357,24 @@ Menerapkan empat aktor utama:
 3. Petugas Check-in.
 4. Mahasiswa.
 
+Satu akun dapat memiliki lebih dari satu role. Hak akses mahasiswa tetap tersedia meskipun akun memiliki role pengelola.
+
 **Task 3.4 — Authorization**
 
 - Membuat middleware atau mekanisme authorization.
 - Membatasi akses endpoint berdasarkan role.
-- Memastikan admin organisasi hanya mengakses organisasinya.
-- Membatasi petugas check-in sesuai kewenangannya.
+- Memastikan admin organisasi hanya mengakses organisasi yang tercatat pada `organization_members`.
+- Membatasi petugas check-in pada event yang tercatat pada `event_officers`.
 - Memastikan mahasiswa tidak dapat mengakses fungsi administrasi.
+- Memastikan penentuan role tidak bergantung pada data yang dikirim frontend.
 
 **Task 3.5 — Frontend Authentication**
 
 - Membuat halaman login.
 - Mengelola authentication state menggunakan Pinia.
 - Mengatur proteksi halaman.
-- Mengatur komunikasi autentikasi melalui Axios.
+- Mengatur komunikasi autentikasi melalui Axios menggunakan cookie-based session dan CSRF token.
+- Tidak menyimpan token autentikasi di localStorage.
 - Menangani kondisi session atau token tidak valid.
 
 ### Expected Deliverables
@@ -519,6 +538,7 @@ Tahap ini merupakan fondasi awal untuk menyelesaikan The 30% Hard Problem.
 - Memeriksa identitas mahasiswa.
 - Memeriksa status event.
 - Memeriksa aturan satu registrasi aktif per mahasiswa untuk event yang sama.
+- Menyediakan pembatalan administratif sesuai aturan RULES §11.6.
 
 **Task 6.2 — Ticket Inventory**
 
@@ -546,16 +566,18 @@ Mengimplementasikan reservasi menggunakan:
 - Pemeriksaan kuota terbaru setelah lock diperoleh.
 - Pembuatan atau pembaruan registrasi PENDING.
 - Penambahan `reserved_count`.
-- Batas waktu reservasi 10 menit.
+- Batas waktu reservasi 10 menit yang disimpan pada `registrations.expires_at`.
+- Alur event gratis dalam transaksi yang sama: status `CONFIRMED`, `sold_count` bertambah, `reserved_count` tidak berubah, tiket `ACTIVE` langsung dibuat, dan tidak ada record pembayaran.
 
 **Task 6.4 — Reservation Expiration Foundation**
 
 Menyiapkan mekanisme kedaluwarsa reservasi.
 
-- Menyimpan waktu kedaluwarsa.
+- Menyimpan waktu kedaluwarsa pada `registrations.expires_at`.
 - Memeriksa status registrasi.
 - Menyiapkan mekanisme pelepasan kuota.
 - Mencegah pelepasan kuota berulang.
+- Menggunakan index `(status, expires_at)` untuk pemeriksaan reservasi kedaluwarsa.
 
 **Task 6.5 — Frontend Registration**
 
@@ -578,6 +600,7 @@ Menguji:
 - Reservasi kedaluwarsa.
 - Kegagalan transaksi.
 - Permintaan bersamaan pada kuota terbatas.
+- Pembatalan administratif tidak melepaskan kuota lebih dari sekali.
 
 ### Expected Deliverables
 
@@ -645,6 +668,9 @@ Menggunakan database transaction untuk:
 - Mencegah penerbitan tiket ganda.
 - Memeriksa status transaksi sebelum perubahan.
 - Menangani request berulang dengan aman.
+- Menggunakan record pembayaran yang sama untuk retry selama reservasi aktif dan belum `PAID`.
+- Menolak pembayaran setelah reservasi kedaluwarsa.
+- Mengembalikan tiket yang sudah ada tanpa membuat tiket baru ketika pembayaran sudah `PAID`.
 
 **Task 7.5 — Frontend Payment**
 
@@ -769,6 +795,7 @@ Menguji:
 - Menerima token QR.
 - Memeriksa validitas tiket.
 - Memeriksa event terkait.
+- Memeriksa bahwa petugas ditugaskan pada event melalui `event_officers`.
 - Memeriksa status check-in.
 
 **Task 9.2 — Check-in Service**
@@ -778,6 +805,7 @@ Mengimplementasikan:
 - Validasi token QR.
 - Pemeriksaan status pembayaran atau tiket.
 - Pemeriksaan kesesuaian event.
+- Pemeriksaan penugasan petugas pada event.
 - Pencatatan kehadiran.
 - Pencegahan check-in ganda.
 
@@ -1155,6 +1183,17 @@ Setiap perubahan dokumentasi harus mencatat:
 
 AI tidak boleh mengubah kebutuhan atau arsitektur secara sepihak.
 
+## 5.3 Amendment Log
+
+| Versi | Bagian | Perubahan | Dasar |
+|---|---|---|---|
+| 1.1 | Task 1.3 | PHP 8.3.x, Sanctum, verifikasi advisory Composer, lokasi proyek | F-09, F-10, F-11, F-13 |
+| 1.1 | Task 2.2, 2.4, 2.5 | Migration dan constraint `user_roles`, `event_officers`, `location`, `category`, `expires_at` | F-01, F-02, F-03, F-07 |
+| 1.1 | Task 3.3, 3.4 | Multi-role dan cakupan akses berdasarkan penugasan | F-07 |
+| 1.1 | Task 6.3, 6.4 | Event gratis dan `expires_at` | F-02, F-04 |
+| 1.1 | Task 7.4 | Retry pembayaran dan idempotency | F-08 |
+| 1.1 | Task 9.1, 9.2 | Pemeriksaan penugasan petugas | F-03 |
+
 ---
 
 # 6. TASK STATUS MANAGEMENT
@@ -1174,43 +1213,43 @@ Gunakan status berikut untuk memantau perkembangan:
 
 ### Phase 01 — Project Preparation
 
-- [ ] Task 1.1 Documentation Review
-- [ ] Task 1.2 Repository Inspection
-- [ ] Task 1.3 Environment Setup
-- [ ] Task 1.4 Database Connection
-- [ ] Task 1.5 Initial Application Setup
+- [x] Task 1.1 Documentation Review
+- [x] Task 1.2 Repository Inspection
+- [x] Task 1.3 Environment Setup
+- [x] Task 1.4 Database Connection
+- [x] Task 1.5 Initial Application Setup
 
 ### Phase 02 — Database
 
-- [ ] Task 2.1 Database Structure Review
-- [ ] Task 2.2 Migration Development
-- [ ] Task 2.3 Model Development
-- [ ] Task 2.4 Database Constraints
-- [ ] Task 2.5 Factory and Seeder
-- [ ] Task 2.6 Database Validation
+- [x] Task 2.1 Database Structure Review
+- [x] Task 2.2 Migration Development
+- [x] Task 2.3 Model Development
+- [x] Task 2.4 Database Constraints
+- [x] Task 2.5 Factory and Seeder
+- [x] Task 2.6 Database Validation
 
 ### Phase 03 — Authentication & RBAC
 
-- [ ] Task 3.1 Authentication
-- [ ] Task 3.2 User Management
-- [ ] Task 3.3 RBAC Implementation
-- [ ] Task 3.4 Authorization
-- [ ] Task 3.5 Frontend Authentication
+- [x] Task 3.1 Authentication
+- [x] Task 3.2 User Management
+- [x] Task 3.3 RBAC Implementation
+- [x] Task 3.4 Authorization
+- [x] Task 3.5 Frontend Authentication
 
 ### Phase 04 — Organization Management
 
-- [ ] Task 4.1 Organization API
-- [ ] Task 4.2 Organization Membership
-- [ ] Task 4.3 Frontend Organization Management
-- [ ] Task 4.4 Organization Authorization Testing
+- [x] Task 4.1 Organization API
+- [x] Task 4.2 Organization Membership
+- [x] Task 4.3 Frontend Organization Management
+- [x] Task 4.4 Organization Authorization Testing
 
 ### Phase 05 — Event Management
 
-- [ ] Task 5.1 Event API
-- [ ] Task 5.2 Event Attributes
-- [ ] Task 5.3 Event Business Rules
-- [ ] Task 5.4 Frontend Event Management
-- [ ] Task 5.5 Event Testing
+- [x] Task 5.1 Event API
+- [x] Task 5.2 Event Attributes
+- [x] Task 5.3 Event Business Rules
+- [x] Task 5.4 Frontend Event Management
+- [x] Task 5.5 Event Testing
 
 ### Phase 06 — Registration & Reservation
 

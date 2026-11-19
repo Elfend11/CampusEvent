@@ -4,8 +4,8 @@
 **Project:** CampusEvent  
 **Project Name:** Integrated Campus Event & Ticketing Management System  
 **Document:** Coding Rules & Engineering Standards  
-**Version:** 1.0  
-**Status:** Approved  
+**Version:** 1.1  
+**Status:** Approved (Amendment 1)  
 **Purpose:** Menjadi pedoman teknis dan standar pengembangan yang wajib dipatuhi selama proses implementasi CampusEvent.
 
 ---
@@ -270,7 +270,10 @@ Gunakan Unique Constraint untuk data yang tidak boleh memiliki duplikasi.
 Contoh:
 
 - Email pengguna harus unik.
+- Kombinasi pengguna dan role pada `user_roles` harus unik.
 - Kombinasi event dan mahasiswa pada registrasi harus mengikuti aturan satu registrasi aktif per event.
+- Kombinasi event dan petugas pada `event_officers` harus unik.
+- Setiap registrasi hanya boleh memiliki satu record pembayaran.
 - Token tiket harus unik.
 - Satu tiket hanya boleh memiliki satu catatan check-in yang berhasil.
 
@@ -313,6 +316,10 @@ Invariant wajib:
 `reserved_count + sold_count <= capacity`
 
 AI tidak boleh membuat implementasi yang memungkinkan nilai kuota menjadi negatif atau melebihi kapasitas.
+
+Untuk event gratis, konfirmasi dilakukan dalam transaksi reservasi yang sama: `sold_count` bertambah satu, `reserved_count` tidak berubah, tiket berstatus `ACTIVE` langsung dibuat, dan tidak ada record pembayaran.
+
+Masa berlaku reservasi disimpan pada `registrations.expires_at` dengan batas waktu 10 menit.
 
 ---
 
@@ -378,6 +385,11 @@ Keamanan harus diterapkan pada seluruh lapisan sistem.
 3. Endpoint yang membutuhkan autentikasi harus dilindungi.
 4. Proses login harus memiliki validasi dan penanganan kegagalan yang sesuai.
 5. Session atau token autentikasi harus dikelola dengan aman.
+6. Autentikasi API menggunakan Laravel Sanctum dengan Cookie-Based SPA Authentication.
+7. Frontend tidak boleh menyimpan token autentikasi di localStorage.
+8. Setiap request yang mengubah data wajib dilindungi CSRF.
+9. Session harus diregenerasi setelah login dan diinvalidasi saat logout.
+10. Cookie autentikasi menggunakan `HttpOnly`, `Secure` pada deployment HTTPS, dan `SameSite` yang sesuai.
 
 ### 8.2 Authorization and RBAC
 
@@ -390,15 +402,18 @@ CampusEvent memiliki empat aktor utama:
 
 Setiap aktor hanya boleh mengakses fungsi sesuai hak aksesnya.
 
+Satu akun dapat memiliki lebih dari satu role. Role disimpan terpisah dari data akun dan tidak boleh menimbulkan duplikasi akun. Hak akses mahasiswa tetap tersedia meskipun akun tersebut memiliki role pengelola.
+
 Aturan:
 
 1. Terapkan Role-Based Access Control (RBAC).
 2. Validasi role dan permission pada backend.
 3. Gunakan middleware, policy, atau mekanisme otorisasi Laravel yang sesuai.
-4. Admin Organisasi hanya boleh mengelola organisasi dan event yang menjadi tanggung jawabnya.
-5. Petugas Check-in hanya boleh melakukan fungsi check-in sesuai kewenangannya.
+4. Admin Organisasi hanya boleh mengelola organisasi dan event yang menjadi tanggung jawabnya, yaitu organisasi yang tercatat pada `organization_members`.
+5. Petugas Check-in hanya boleh melakukan fungsi check-in untuk event yang tercatat pada `event_officers`.
 6. Mahasiswa tidak boleh mengakses fungsi administrasi.
 7. Super Admin memiliki kewenangan pengelolaan platform sesuai kebutuhan sistem.
+8. Role tidak boleh ditentukan oleh data yang dikirim frontend.
 
 ### 8.3 Input and Endpoint Protection
 
@@ -549,8 +564,9 @@ Bagian ini merupakan aturan khusus untuk menangani tantangan utama CampusEvent, 
 4. Periksa kembali ketersediaan tiket setelah lock diperoleh.
 5. Jika kuota tidak tersedia, batalkan proses reservasi.
 6. Jika kuota tersedia, buat atau perbarui registrasi PENDING dan tambahkan `reserved_count`.
-7. Setiap reservasi memiliki batas waktu 10 menit.
+7. Setiap reservasi memiliki batas waktu 10 menit yang disimpan pada `registrations.expires_at`.
 8. Jangan mengurangi kuota berdasarkan data frontend.
+9. Event gratis tidak membuat reservasi sementara; konfirmasi dilakukan dalam transaksi yang sama sesuai RULES §11.2 butir 10.
 
 ### 11.2 Payment Confirmation Rules
 
@@ -560,6 +576,10 @@ Bagian ini merupakan aturan khusus untuk menangani tantangan utama CampusEvent, 
 4. Konfirmasi pembayaran wajib transactional.
 5. Ketika berhasil, sistem memperbarui status registrasi, mengurangi `reserved_count`, menambah `sold_count`, dan menerbitkan tiket dalam transaksi yang konsisten.
 6. Proses yang sama tidak boleh menghasilkan penerbitan tiket ganda.
+7. Satu registrasi hanya memiliki satu record pembayaran.
+8. Retry pembayaran menggunakan record pembayaran yang sama selama reservasi masih aktif dan belum berstatus `PAID`.
+9. Pembayaran berstatus `PAID` tidak boleh diproses ulang dan tidak boleh menghasilkan tiket tambahan.
+10. Event gratis tidak membuat record pembayaran; status registrasi langsung `CONFIRMED`, `sold_count` bertambah, `reserved_count` tidak berubah, dan tiket `ACTIVE` diterbitkan dalam transaksi yang sama.
 
 ### 11.3 Reservation Expiration Rules
 
@@ -588,6 +608,17 @@ Contoh:
 - Pelepasan reservasi tidak boleh mengurangi kuota dua kali.
 - Check-in tidak boleh tercatat dua kali untuk tiket yang sama.
 - Request berulang harus menghasilkan respons yang sesuai dengan status terakhir data.
+
+### 11.6 Administrative Cancellation Rules
+
+1. Pembatalan mandiri oleh mahasiswa tidak termasuk cakupan versi 1.
+2. Pembatalan hanya dapat dilakukan oleh Super Admin atau Admin Organisasi yang berwenang atas event terkait.
+3. Pembatalan wajib menggunakan transaksi database.
+4. Urutan locking konsisten: registration terlebih dahulu, kemudian event inventory.
+5. Pembatalan registrasi `PENDING` melepaskan `reserved_count` sebanyak satu.
+6. Pembatalan registrasi `CONFIRMED` melepaskan `sold_count` sebanyak satu dan mengubah tiket menjadi `VOID`.
+7. Registrasi `EXPIRED` atau `CANCELLED` tidak boleh dilepas kembali.
+8. Kuota tidak boleh menjadi negatif akibat pembatalan.
 
 ---
 
@@ -756,6 +787,19 @@ Sebuah fitur hanya dapat dinyatakan selesai apabila:
 5. Integrasi dengan modul terkait berfungsi.
 6. Dokumentasi diperbarui jika terdapat perubahan yang relevan.
 7. Hasil pekerjaan dapat dijelaskan dan diverifikasi.
+
+---
+
+## 15. DOCUMENT CHANGE LOG
+
+| Versi | Bagian | Perubahan | Dasar |
+|---|---|---|---|
+| 1.1 | §6.2 | Unique constraint `user_roles` dan `event_officers` | F-03, F-07 |
+| 1.1 | §6.5 | Perilaku event gratis dan `registrations.expires_at` | F-02, F-04 |
+| 1.1 | §8.1 | Autentikasi Sanctum, CSRF, session, dan cookie | F-09 |
+| 1.1 | §8.2 | Multi-role dan cakupan akses berdasarkan penugasan | F-07 |
+| 1.1 | §11.1, §11.2 | `expires_at`, retry pembayaran, dan event gratis | F-02, F-04, F-08 |
+| 1.1 | §11.6 | Aturan pembatalan administratif | F-06 |
 
 ---
 

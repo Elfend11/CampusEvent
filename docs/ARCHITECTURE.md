@@ -4,9 +4,9 @@
 ## System Architecture & Technical Design
 
 **Document Type:** Software Architecture Specification  
-**Version:** 1.0  
+**Version:** 1.1  
 **Project:** CampusEvent  
-**Status:** Initial Approved Architecture  
+**Status:** Approved Architecture (Amendment 1)  
 **Architecture Pattern:** 3-Tier Architecture + MVC REST API
 
 ---
@@ -47,10 +47,11 @@ Frontend dan backend berkomunikasi menggunakan REST API dengan format pertukaran
 | Backend | Laravel | Application Backend |
 | Architecture | MVC | Business Logic Organization |
 | API | REST API | Client-Server Communication |
+| Authentication | Laravel Sanctum | Cookie-Based SPA Authentication |
 | Database | MySQL InnoDB | Relational Data Storage |
 | QR Code | QR Code Library | Digital Ticket Generation |
 | Scheduler | Laravel Scheduler | Reservation Expiration |
-| Runtime | PHP, Node.js | Application Execution |
+| Runtime | PHP 8.3.x, Node.js | Application Execution |
 | Version Control | Git | Source Code Management |
 
 Frontend dan backend dikembangkan sebagai aplikasi terpisah dalam satu repository atau struktur proyek yang terorganisasi.
@@ -95,6 +96,7 @@ Components:
 | Models | Merepresentasikan data database |
 | Services | Menangani logika bisnis |
 | Middleware | Mengatur autentikasi dan otorisasi |
+| Sanctum | Autentikasi SPA berbasis cookie dan proteksi CSRF |
 | Form Requests | Memvalidasi input |
 | Jobs / Scheduler | Menangani proses terjadwal |
 
@@ -210,8 +212,10 @@ Database CampusEvent dirancang menggunakan relational database dengan prinsip:
 | Entity | Description |
 |---|---|
 | users | Data pengguna |
+| user_roles | Role yang dimiliki pengguna (satu pengguna dapat memiliki beberapa role) |
 | organizations | Data organisasi |
 | organization_members | Relasi pengguna dan organisasi |
+| event_officers | Penugasan petugas check-in pada event |
 | events | Data kegiatan |
 | registrations | Data pendaftaran |
 | payments | Data pembayaran simulasi |
@@ -223,8 +227,11 @@ Database CampusEvent dirancang menggunakan relational database dengan prinsip:
 ```mermaid
 erDiagram
     USERS ||--o{ ORGANIZATION_MEMBERS : joins
+    USERS ||--o{ USER_ROLES : has
+    USERS ||--o{ EVENT_OFFICERS : assigned
     ORGANIZATIONS ||--o{ ORGANIZATION_MEMBERS : has
     ORGANIZATIONS ||--o{ EVENTS : organizes
+    EVENTS ||--o{ EVENT_OFFICERS : assigns
     USERS ||--o{ REGISTRATIONS : creates
     EVENTS ||--o{ REGISTRATIONS : receives
     REGISTRATIONS ||--o| PAYMENTS : has
@@ -236,6 +243,11 @@ erDiagram
         string name
         string email UK
         string password
+    }
+
+    USER_ROLES {
+        bigint id PK
+        bigint user_id FK
         string role
     }
 
@@ -253,11 +265,19 @@ erDiagram
         string role
     }
 
+    EVENT_OFFICERS {
+        bigint id PK
+        bigint event_id FK
+        bigint user_id FK
+    }
+
     EVENTS {
         bigint id PK
         bigint organization_id FK
         string title
         text description
+        string location
+        string category
         datetime registration_start
         datetime registration_end
         datetime event_start
@@ -274,6 +294,7 @@ erDiagram
         bigint user_id FK
         bigint event_id FK
         string status
+        datetime expires_at
         datetime created_at
     }
 
@@ -311,18 +332,24 @@ Catatan: Diagram merupakan rancangan konseptual. Implementasi final harus memper
 - `reserved_count` tidak boleh negatif.
 - `sold_count` tidak boleh negatif.
 - `reserved_count + sold_count` tidak boleh melebihi `capacity`.
+- `location` dan `category` wajib terisi untuk setiap event.
+- Perubahan `capacity` tidak boleh membuat `reserved_count + sold_count` melebihi kapasitas baru.
 
 ### Registrations
 
 - Satu pengguna hanya boleh memiliki satu pendaftaran aktif untuk event yang sama.
 - Setiap pendaftaran harus terhubung dengan pengguna dan event.
 - Status pendaftaran harus mengikuti siklus bisnis yang ditetapkan.
+- `expires_at` wajib terisi selama status pendaftaran bernilai `PENDING`.
+- `expires_at` tidak boleh digunakan kembali sebagai bukti reservasi aktif setelah status berubah menjadi `CONFIRMED`, `EXPIRED`, atau `CANCELLED`.
 
 ### Payments
 
 - Setiap pembayaran harus terhubung dengan pendaftaran.
 - Nominal pembayaran harus sesuai harga tiket.
 - Status pembayaran harus tercatat secara konsisten.
+- Setiap pendaftaran memiliki maksimal satu record pembayaran.
+- Event gratis tidak membuat record pembayaran.
 
 ### Tickets
 
@@ -330,21 +357,45 @@ Catatan: Diagram merupakan rancangan konseptual. Implementasi final harus memper
 - Token tiket tidak boleh dapat ditebak.
 - Tiket harus terhubung dengan pendaftaran yang valid.
 - Satu tiket hanya dapat digunakan satu kali.
+- Status tiket hanya boleh bernilai `ACTIVE`, `USED`, atau `VOID`.
 
 ### Attendances
 
 - Satu tiket hanya boleh memiliki satu catatan check-in.
 - Check-in harus dilakukan oleh petugas yang memiliki otorisasi.
+- Petugas hanya boleh melakukan check-in untuk event yang ditugaskan kepadanya.
+
+### User Roles
+
+- Satu pengguna dapat memiliki lebih dari satu role.
+- Kombinasi `user_id` dan `role` harus unik.
+- Role yang sah adalah `SUPER_ADMIN`, `ORGANIZATION_ADMIN`, `CHECK_IN_OFFICER`, dan `STUDENT`.
+
+### Organization Members
+
+- Kombinasi `organization_id` dan `user_id` harus unik.
+- `organization_members.role` hanya berlaku di dalam organisasi terkait dan tidak menaikkan hak akses global pengguna.
+
+### Event Officers
+
+- Kombinasi `event_id` dan `user_id` harus unik.
+- Penugasan petugas hanya boleh dilakukan oleh pihak yang berwenang atas event tersebut.
+- Petugas check-in hanya boleh mengakses event yang tercatat pada `event_officers`.
 
 ## 5.5 Recommended Indexes and Constraints
 
 | Table | Index / Constraint | Purpose |
 |---|---|---|
 | users | UNIQUE(email) | Mencegah email ganda |
+| user_roles | UNIQUE(user_id, role) | Mencegah role ganda pada pengguna yang sama |
 | organization_members | UNIQUE(organization_id, user_id) | Mencegah keanggotaan ganda |
+| event_officers | UNIQUE(event_id, user_id) | Mencegah penugasan petugas ganda |
+| event_officers | INDEX(user_id) | Menampilkan event yang ditugaskan kepada petugas |
 | events | INDEX(organization_id, status) | Pencarian event |
+| events | INDEX(status, category) | Filter kategori pada event terpublikasi |
 | registrations | UNIQUE(event_id, user_id) | Mencegah pendaftaran ganda |
 | registrations | INDEX(event_id, status) | Monitoring peserta |
+| registrations | INDEX(status, expires_at) | Pemeriksaan reservasi kedaluwarsa |
 | payments | UNIQUE(registration_id) | Satu catatan pembayaran |
 | tickets | UNIQUE(registration_id) | Satu tiket per pendaftaran |
 | tickets | UNIQUE(ticket_code) | Kode tiket unik |
@@ -352,6 +403,79 @@ Catatan: Diagram merupakan rancangan konseptual. Implementasi final harus memper
 | attendances | UNIQUE(ticket_id) | Mencegah check-in ganda |
 
 Untuk mendukung pendaftaran ulang setelah reservasi kedaluwarsa, sistem dapat memperbarui siklus status pada satu record pendaftaran, bukan membuat record aktif kedua.
+
+## 5.6 Status Enumeration and Transition Rules
+
+Seluruh status disimpan sebagai string dan hanya boleh bernilai sesuai daftar berikut. Validasi transisi status wajib dilakukan di backend sebelum perubahan data disimpan.
+
+### Events
+
+| Status | Deskripsi |
+|---|---|
+| `DRAFT` | Event dibuat tetapi belum dipublikasikan |
+| `PUBLISHED` | Event dipublikasikan dan dapat ditemukan mahasiswa |
+| `CLOSED` | Event tidak lagi menerima pendaftaran |
+| `CANCELLED` | Event dibatalkan |
+
+Transisi yang diizinkan:
+
+- `DRAFT` → `PUBLISHED`
+- `DRAFT` → `CANCELLED`
+- `PUBLISHED` → `CLOSED`
+- `PUBLISHED` → `CANCELLED`
+
+`CLOSED` dan `CANCELLED` bersifat terminal.
+
+### Registrations
+
+| Status | Deskripsi |
+|---|---|
+| `PENDING` | Reservasi aktif dan menunggu konfirmasi |
+| `CONFIRMED` | Pendaftaran terkonfirmasi dan tiket diterbitkan |
+| `EXPIRED` | Reservasi melewati batas waktu |
+| `CANCELLED` | Pendaftaran dibatalkan secara administratif |
+
+Transisi yang diizinkan:
+
+- `PENDING` → `CONFIRMED`
+- `PENDING` → `EXPIRED`
+- `PENDING` → `CANCELLED`
+- `CONFIRMED` → `CANCELLED`
+
+`EXPIRED` dan `CANCELLED` bersifat terminal.
+
+### Payments
+
+| Status | Deskripsi |
+|---|---|
+| `PENDING` | Pembayaran simulasi belum diproses |
+| `PAID` | Pembayaran simulasi berhasil (setara "berhasil" pada FR-38) |
+| `FAILED` | Pembayaran simulasi gagal |
+
+Transisi yang diizinkan:
+
+- `PENDING` → `PAID`
+- `PENDING` → `FAILED`
+- `FAILED` → `PENDING`
+
+`PAID` bersifat terminal.
+
+### Tickets
+
+| Status | Deskripsi |
+|---|---|
+| `ACTIVE` | Tiket valid dan belum digunakan |
+| `USED` | Tiket telah digunakan untuk check-in |
+| `VOID` | Tiket dibatalkan dan tidak berlaku |
+
+Transisi yang diizinkan:
+
+- `ACTIVE` → `USED`
+- `ACTIVE` → `VOID`
+
+`USED` dan `VOID` bersifat terminal.
+
+Transisi status di luar daftar di atas harus ditolak oleh backend.
 
 ---
 
@@ -384,6 +508,8 @@ Untuk mendukung pendaftaran ulang setelah reservasi kedaluwarsa, sistem dapat me
 
 Jika kuota tidak tersedia, backend mengembalikan respons penolakan.
 
+Untuk event gratis, reservasi dan konfirmasi dilakukan dalam satu transaksi atomik sesuai §6.3.1.
+
 ## 6.3 Payment Flow
 
 1. Mahasiswa memiliki reservasi sementara.
@@ -399,6 +525,46 @@ Jika kuota tidak tersedia, backend mengembalikan respons penolakan.
 
 Jika pembayaran gagal atau reservasi telah kedaluwarsa, sistem tidak menerbitkan tiket.
 
+### 6.3.1 Free Event Flow
+
+Event dengan `ticket_price` bernilai nol tidak membuat record pembayaran.
+
+```text
+BEGIN TRANSACTION
+
+1. Lock event inventory row using SELECT FOR UPDATE.
+
+2. Verify event is published and the registration period is active.
+
+3. Read current capacity, reserved_count, and sold_count.
+
+4. Calculate available quota.
+
+5. If available <= 0:
+      ROLLBACK
+      Return SOLD_OUT.
+
+6. Create or update registration as CONFIRMED.
+
+7. Increment sold_count by 1.
+   reserved_count is not modified.
+
+8. Generate digital ticket with status ACTIVE.
+
+9. COMMIT TRANSACTION.
+```
+
+Reservasi dan konfirmasi event gratis berada dalam transaksi yang sama sehingga tidak ada status `PENDING` yang bertahan dan tidak ada kuota yang tertahan.
+
+### 6.3.2 Payment Retry and Idempotency
+
+1. Satu pendaftaran hanya memiliki satu record pembayaran.
+2. Retry pembayaran menggunakan record pembayaran yang sama selama reservasi masih aktif dan belum `PAID`.
+3. Setiap percobaan pembayaran dijalankan secara transaksional.
+4. Pembayaran dengan status `PAID` tidak boleh diproses ulang dan tidak boleh menghasilkan tiket duplikat.
+5. Pembayaran yang dilakukan setelah `expires_at` terlewati atau setelah status pendaftaran bukan `PENDING` harus ditolak.
+6. Request pembayaran berulang harus mengembalikan status terakhir dan tiket yang sudah ada.
+
 ## 6.4 Check-in Flow
 
 1. Petugas login.
@@ -407,9 +573,10 @@ Jika pembayaran gagal atau reservasi telah kedaluwarsa, sistem tidak menerbitkan
 4. Frontend mengirim token tiket ke backend.
 5. Backend memverifikasi token.
 6. Backend memeriksa status tiket dan event.
-7. Backend memeriksa apakah tiket telah digunakan.
-8. Jika valid, sistem mencatat kehadiran.
-9. Sistem menampilkan status check-in.
+7. Backend memastikan petugas ditugaskan pada event tersebut melalui `event_officers`.
+8. Backend memeriksa apakah tiket telah digunakan.
+9. Jika valid, sistem mencatat kehadiran.
+10. Sistem menampilkan status check-in.
 
 ---
 
@@ -425,7 +592,9 @@ Communication format:
 
 - Request: JSON.
 - Response: JSON.
-- Authentication: Token-based authentication.
+- Authentication: Laravel Sanctum dengan Cookie-Based SPA Authentication.
+- Sesi autentikasi menggunakan cookie; frontend tidak menyimpan token autentikasi di localStorage.
+- Setiap request yang mengubah data wajib melalui proteksi CSRF.
 - HTTP methods: GET, POST, PUT/PATCH, DELETE.
 
 Seluruh endpoint yang membutuhkan autentikasi harus dilindungi middleware yang sesuai.
@@ -468,7 +637,9 @@ Seluruh endpoint yang membutuhkan autentikasi harus dilindungi middleware yang s
 | POST | /events/{id}/reservations | Membuat reservasi |
 | GET | /registrations | Riwayat pendaftaran |
 | GET | /registrations/{id} | Detail pendaftaran |
-| POST | /registrations/{id}/cancel | Membatalkan reservasi jika diizinkan |
+| POST | /registrations/{id}/cancel | Pembatalan administratif oleh pihak berwenang |
+
+Pembatalan mandiri oleh mahasiswa tidak termasuk cakupan versi 1. Endpoint pembatalan hanya dapat digunakan oleh Super Admin atau Admin Organisasi yang berwenang atas event terkait, dengan aturan pada §9.7.
 
 ### Payments
 
@@ -610,6 +781,8 @@ Status reservasi:
 
 Reservasi yang telah kedaluwarsa tidak boleh dikonfirmasi.
 
+Waktu kedaluwarsa disimpan pada kolom `registrations.expires_at`. Event gratis tidak menggunakan reservasi sementara; konfirmasi dilakukan langsung dalam transaksi reservasi sesuai §6.3.1.
+
 ## 9.5 Payment Confirmation
 
 ```text
@@ -621,24 +794,28 @@ BEGIN TRANSACTION
 
 3. Verify current time is before expires_at.
 
-4. Validate payment simulation result.
+4. Verify the payment record belongs to the registration and is not already PAID.
 
-5. Lock event inventory row.
+5. Validate payment simulation result.
 
-6. Update payment status to PAID.
+6. Lock event inventory row.
 
-7. Change registration status to CONFIRMED.
+7. Update payment status to PAID.
 
-8. Decrease reserved_count by 1.
+8. Change registration status to CONFIRMED.
 
-9. Increase sold_count by 1.
+9. Decrease reserved_count by 1.
 
-10. Generate digital ticket.
+10. Increase sold_count by 1.
 
-11. COMMIT TRANSACTION.
+11. Generate digital ticket.
+
+12. COMMIT TRANSACTION.
 ```
 
 Jika salah satu operasi gagal, seluruh perubahan harus di-rollback.
+
+Jika pembayaran sudah berstatus `PAID`, transaksi tidak diulang dan sistem mengembalikan tiket yang sudah ada tanpa menerbitkan tiket baru.
 
 ## 9.6 Reservation Expiration
 
@@ -665,6 +842,39 @@ BEGIN TRANSACTION
 Proses ini harus idempotent agar satu reservasi tidak mengembalikan kuota lebih dari satu kali.
 
 Jika proses pembayaran dan expiration berjalan bersamaan, keduanya harus menggunakan urutan locking yang konsisten dan memeriksa ulang status reservasi sebelum melakukan perubahan.
+
+## 9.7 Administrative Cancellation
+
+Pembatalan mandiri oleh mahasiswa tidak termasuk cakupan versi 1. Pembatalan hanya dilakukan secara administratif oleh Super Admin atau Admin Organisasi yang berwenang atas event terkait.
+
+```text
+BEGIN TRANSACTION
+
+1. Lock registration row.
+
+2. Recheck registration status is PENDING or CONFIRMED.
+
+3. If status is PENDING:
+      Set registration status to CANCELLED.
+      Lock event inventory row.
+      Decrease reserved_count by 1.
+
+4. If status is CONFIRMED:
+      Set registration status to CANCELLED.
+      Set related ticket status to VOID.
+      Lock event inventory row.
+      Decrease sold_count by 1.
+
+5. COMMIT TRANSACTION.
+```
+
+Aturan pembatalan administratif:
+
+1. Kuota hanya boleh dilepas satu kali.
+2. Registrasi yang sudah `EXPIRED` atau `CANCELLED` tidak boleh dilepas kembali.
+3. Urutan locking konsisten: registration terlebih dahulu, kemudian event inventory.
+4. Proses harus transactional dan idempotent.
+5. Pembatalan tidak boleh menghasilkan kuota negatif.
 
 ---
 
@@ -693,6 +903,13 @@ Implementasi dapat menggunakan:
 - Pemeriksaan status transaksi.
 - Operasi update yang bersyarat.
 
+Perilaku idempotent yang wajib:
+
+- Konfirmasi pembayaran pada record berstatus `PAID` mengembalikan tiket yang sudah ada tanpa menerbitkan tiket baru.
+- Retry pembayaran menggunakan record pembayaran yang sama.
+- Pembatalan administratif tidak melepaskan kuota lebih dari satu kali.
+- Check-in kedua pada tiket yang sama ditolak.
+
 ## 10.3 Deadlock Handling
 
 Sistem harus:
@@ -720,10 +937,11 @@ Sistem menyimpan hash token untuk kebutuhan validasi.
 1. QR Code dipindai.
 2. Token dikirim ke backend.
 3. Backend mencocokkan hash token.
-4. Sistem memeriksa status tiket.
+4. Sistem memeriksa status tiket bernilai `ACTIVE`.
 5. Sistem memeriksa kesesuaian event.
-6. Sistem memeriksa status check-in.
-7. Jika valid, sistem mencatat kehadiran secara transaksional.
+6. Sistem memeriksa bahwa petugas ditugaskan pada event tersebut.
+7. Sistem memeriksa status check-in.
+8. Jika valid, sistem mencatat kehadiran secara transaksional.
 
 ## 11.3 Duplicate Check-in Prevention
 
@@ -770,7 +988,11 @@ Security diterapkan pada seluruh lapisan aplikasi.
 - Role-based authorization.
 - Input validation.
 - Password hashing.
-- Proteksi CSRF sesuai mekanisme autentikasi.
+- Autentikasi SPA menggunakan Laravel Sanctum dengan cookie-based session.
+- Proteksi CSRF pada seluruh request yang mengubah data.
+- Session regeneration setelah login dan invalidasi session saat logout.
+- Konfigurasi cookie `HttpOnly`, `Secure` pada deployment HTTPS, dan `SameSite` yang sesuai.
+- Frontend tidak menyimpan token autentikasi di localStorage.
 - Rate limiting pada endpoint sensitif.
 - Validasi kepemilikan data.
 - Pengelolaan token secara aman.
@@ -868,12 +1090,16 @@ Skenario:
 Komponen pengembangan:
 
 - Visual Studio Code.
-- PHP dan Composer.
+- PHP 8.3.x dan Composer.
 - Laravel.
 - Node.js dan npm.
 - Vue.js dan Vite.
-- MySQL.
+- MySQL 8.x dengan storage engine InnoDB.
 - Git dan GitHub.
+
+Lokasi folder kerja utama proyek: `C:\laragon\www\campusevent`.
+
+Sebelum instalasi dependency, versi Composer yang digunakan harus diverifikasi terhadap advisory keamanan yang berlaku. Folder kerja lama di luar lokasi utama tidak boleh dihapus sebelum isinya diverifikasi.
 
 ## 15.2 Recommended Project Structure
 
@@ -935,6 +1161,10 @@ Struktur tersebut merupakan rancangan awal dan dapat disesuaikan ketika implemen
 | ADR-07 | 10-minute expiration | Memberikan batas waktu reservasi |
 | ADR-08 | Random QR Token | Meningkatkan keamanan tiket |
 | ADR-09 | Laravel Scheduler | Mengelola reservasi kedaluwarsa |
+| ADR-10 | Laravel Sanctum (Cookie-Based SPA) | Autentikasi SPA yang aman tanpa menyimpan token di localStorage |
+| ADR-11 | Multi-role Account | Satu akun dapat memiliki beberapa role tanpa duplikasi akun |
+| ADR-12 | PHP 8.3.x | Runtime yang didukung dan memiliki ekstensi yang dibutuhkan |
+| ADR-13 | Administrative Cancellation | Pembatalan mandiri di luar cakupan v1 dan kuota dilepas secara terkendali |
 
 ---
 
@@ -946,10 +1176,24 @@ Seluruh implementasi harus mengikuti prinsip pemisahan 3-Tier, MVC REST API, int
 
 Perubahan arsitektur harus dievaluasi terlebih dahulu agar tidak bertentangan dengan kebutuhan sistem yang telah ditetapkan dalam REQUIREMENTS.md.
 
+## 17.1 Documentation Change Log
+
+| Versi | Bagian | Perubahan | Dasar |
+|---|---|---|---|
+| 1.1 | §2, §3.2 | Sanctum dan PHP 8.3.x | F-09, F-10 |
+| 1.1 | §5.2, §5.3 | Entitas `user_roles` dan `event_officers`; atribut `events.location`, `events.category`, `registrations.expires_at`; role tidak lagi disimpan pada `users` | F-01, F-02, F-03, F-07 |
+| 1.1 | §5.4, §5.5 | Aturan integritas dan indeks baru | F-01, F-02, F-03, F-07 |
+| 1.1 | §5.6 | Enumerasi dan validasi transisi status | F-05 |
+| 1.1 | §6.2, §6.3, §9.4, §9.5 | Alur event gratis, retry pembayaran, dan idempotency | F-04, F-08 |
+| 1.1 | §6.4, §11.2 | Pemeriksaan penugasan petugas dan status tiket | F-03, F-05 |
+| 1.1 | §7.1, §7.2, §13.2 | Autentikasi Sanctum, CSRF, dan pembatalan administratif | F-06, F-09 |
+| 1.1 | §9.7, §10.2 | Aturan pembatalan administratif dan idempotency | F-06, F-08 |
+| 1.1 | §15.1 | Lokasi proyek, runtime PHP, dan verifikasi Composer | F-10, F-11, F-13 |
+
 **Project:** CampusEvent  
 **Document:** ARCHITECTURE.md  
-**Version:** 1.0  
-**Status:** Initial Approved Architecture
+**Version:** 1.1  
+**Status:** Approved Architecture (Amendment 1)
 
 ---
 

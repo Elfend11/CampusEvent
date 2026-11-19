@@ -4,10 +4,10 @@
 ## Integrated Campus Event & Ticketing Management System
 
 **Document Type:** Software Requirements Specification (SRS)  
-**Version:** 1.0  
+**Version:** 1.1  
 **Project Type:** Vibe Coding Final Project  
 **Development Approach:** AI-Assisted Software Engineering  
-**Status:** Initial Approved Specification
+**Status:** Approved Specification (Amendment 1)
 
 ---
 
@@ -75,6 +75,7 @@ Tujuan pengembangan CampusEvent adalah:
 - Integrasi otomatis dengan sistem akademik kampus.
 - Sistem pengelolaan keuangan organisasi.
 - Sistem penjualan tiket untuk kebutuhan komersial eksternal di luar cakupan kampus.
+- Pembatalan pendaftaran mandiri oleh mahasiswa pada versi 1.
 
 ---
 
@@ -127,6 +128,8 @@ Sistem menggunakan mekanisme First Come, First Served (FCFS), yaitu peserta yang
 # 3. SYSTEM USERS AND ROLES
 
 CampusEvent memiliki empat role utama.
+
+Satu akun dapat memiliki lebih dari satu role sesuai penugasan. Hak akses mahasiswa tetap tersedia meskipun akun tersebut memiliki role pengelola. Admin Organisasi hanya dapat mengakses organisasi yang ditugaskan kepadanya, dan Petugas Check-in hanya dapat mengakses event yang ditugaskan kepadanya.
 
 ## 3.1 Super Admin
 
@@ -257,6 +260,8 @@ Hak akses:
 | FR-38 | Sistem menyediakan status pembayaran berhasil, pending, atau gagal. |
 
 Catatan: Modul pembayaran merupakan simulasi untuk kebutuhan demonstrasi. Sistem tidak memproses uang sungguhan dan tidak terhubung dengan payment gateway eksternal.
+
+Status pembayaran yang didefinisikan pada `ARCHITECTURE.md` adalah `PENDING`, `PAID`, dan `FAILED`, dengan `PAID` sebagai representasi status berhasil.
 
 ## 4.6 Digital Ticket Management
 
@@ -521,8 +526,10 @@ Entitas utama yang dibutuhkan:
 
 | Entity | Description |
 |---|---|
-| Users | Data akun dan role pengguna |
+| Users | Data akun pengguna |
+| User Roles | Data role yang dimiliki pengguna |
 | Organizations | Data organisasi penyelenggara |
+| Event Officers | Data penugasan petugas check-in pada event |
 | Events | Informasi kegiatan |
 | Registrations | Data pendaftaran peserta |
 | Tickets | Data tiket digital |
@@ -532,6 +539,8 @@ Entitas utama yang dibutuhkan:
 Relasi konseptual:
 
 - Satu organisasi dapat memiliki banyak event.
+- Satu pengguna dapat memiliki banyak role.
+- Satu event dapat memiliki banyak petugas check-in yang ditugaskan.
 - Satu pengguna dapat memiliki banyak pendaftaran.
 - Satu event dapat memiliki banyak pendaftaran.
 - Satu pendaftaran dapat menghasilkan maksimal satu tiket.
@@ -679,10 +688,19 @@ Dokumen ini menjadi dasar kebutuhan bisnis dan fungsional CampusEvent.
 
 Setiap implementasi harus mengacu pada requirement yang telah ditetapkan. Jika ditemukan kebutuhan yang belum terpenuhi atau konflik teknis, perubahan harus dievaluasi dan didokumentasikan sebelum diterapkan.
 
+## 14.1 Change Log
+
+| Versi | Bagian | Perubahan | Dasar |
+|---|---|---|---|
+| 1.1 | §1.4 | Pembatalan mandiri mahasiswa dinyatakan di luar cakupan versi 1 | F-06 |
+| 1.1 | §3 | Satu akun dapat memiliki beberapa role dan cakupan akses per penugasan | F-07 |
+| 1.1 | §4.5 | Pemetaan status pembayaran `PENDING`, `PAID`, `FAILED` | F-05 |
+| 1.1 | §9 | Entitas User Roles dan Event Officers | F-03, F-07 |
+
 **Project:** CampusEvent  
 **Document:** REQUIREMENTS.md  
-**Version:** 1.0  
-**Status:** Initial Approved Specification
+**Version:** 1.1  
+**Status:** Approved Specification (Amendment 1)
 
 ---
 
