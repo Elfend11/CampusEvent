@@ -1213,11 +1213,11 @@ Gunakan status berikut untuk memantau perkembangan:
 
 ### Phase 01 — Project Preparation
 
-- [ ] Task 1.1 Documentation Review
-- [ ] Task 1.2 Repository Inspection
-- [ ] Task 1.3 Environment Setup
-- [ ] Task 1.4 Database Connection
-- [ ] Task 1.5 Initial Application Setup
+- [x] Task 1.1 Documentation Review
+- [x] Task 1.2 Repository Inspection
+- [x] Task 1.3 Environment Setup
+- [x] Task 1.4 Database Connection
+- [x] Task 1.5 Initial Application Setup
 
 ### Phase 02 — Database
 
