@@ -1230,11 +1230,11 @@ Gunakan status berikut untuk memantau perkembangan:
 
 ### Phase 03 — Authentication & RBAC
 
-- [ ] Task 3.1 Authentication
-- [ ] Task 3.2 User Management
-- [ ] Task 3.3 RBAC Implementation
-- [ ] Task 3.4 Authorization
-- [ ] Task 3.5 Frontend Authentication
+- [x] Task 3.1 Authentication
+- [x] Task 3.2 User Management
+- [x] Task 3.3 RBAC Implementation
+- [x] Task 3.4 Authorization
+- [x] Task 3.5 Frontend Authentication
 
 ### Phase 04 — Organization Management
 
