@@ -1221,12 +1221,12 @@ Gunakan status berikut untuk memantau perkembangan:
 
 ### Phase 02 — Database
 
-- [ ] Task 2.1 Database Structure Review
-- [ ] Task 2.2 Migration Development
-- [ ] Task 2.3 Model Development
-- [ ] Task 2.4 Database Constraints
-- [ ] Task 2.5 Factory and Seeder
-- [ ] Task 2.6 Database Validation
+- [x] Task 2.1 Database Structure Review
+- [x] Task 2.2 Migration Development
+- [x] Task 2.3 Model Development
+- [x] Task 2.4 Database Constraints
+- [x] Task 2.5 Factory and Seeder
+- [x] Task 2.6 Database Validation
 
 ### Phase 03 — Authentication & RBAC
 
