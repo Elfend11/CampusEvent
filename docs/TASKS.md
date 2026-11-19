@@ -1245,11 +1245,11 @@ Gunakan status berikut untuk memantau perkembangan:
 
 ### Phase 05 — Event Management
 
-- [ ] Task 5.1 Event API
-- [ ] Task 5.2 Event Attributes
-- [ ] Task 5.3 Event Business Rules
-- [ ] Task 5.4 Frontend Event Management
-- [ ] Task 5.5 Event Testing
+- [x] Task 5.1 Event API
+- [x] Task 5.2 Event Attributes
+- [x] Task 5.3 Event Business Rules
+- [x] Task 5.4 Frontend Event Management
+- [x] Task 5.5 Event Testing
 
 ### Phase 06 — Registration & Reservation
 

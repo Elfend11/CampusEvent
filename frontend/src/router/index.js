@@ -35,6 +35,34 @@ const router = createRouter({
       component: () => import('@/views/organizations/OrganizationDetailView.vue'),
       meta: { requiresAuth: true, roles: ['SUPER_ADMIN', 'ORGANIZATION_ADMIN'] },
     },
+    {
+      path: '/events',
+      name: 'events',
+      component: () => import('@/views/events/EventsView.vue'),
+    },
+    {
+      path: '/events/:id',
+      name: 'event-detail',
+      component: () => import('@/views/events/EventDetailView.vue'),
+    },
+    {
+      path: '/manage/events',
+      name: 'manage-events',
+      component: () => import('@/views/events/ManageEventsView.vue'),
+      meta: { requiresAuth: true, roles: ['SUPER_ADMIN', 'ORGANIZATION_ADMIN'] },
+    },
+    {
+      path: '/manage/events/new',
+      name: 'event-create',
+      component: () => import('@/views/events/EventFormView.vue'),
+      meta: { requiresAuth: true, roles: ['SUPER_ADMIN', 'ORGANIZATION_ADMIN'] },
+    },
+    {
+      path: '/manage/events/:id/edit',
+      name: 'event-edit',
+      component: () => import('@/views/events/EventFormView.vue'),
+      meta: { requiresAuth: true, roles: ['SUPER_ADMIN', 'ORGANIZATION_ADMIN'] },
+    },
   ],
 })
 

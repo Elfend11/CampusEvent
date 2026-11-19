@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\EventController;
 use App\Http\Controllers\Api\V1\OrganizationController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\UserController;
@@ -15,6 +16,9 @@ Route::prefix('v1')->group(function () {
     ]));
 
     Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
+
+    Route::get('/events', [EventController::class, 'index']);
+    Route::get('/events/{event}', [EventController::class, 'show']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/auth/user', [AuthController::class, 'me']);
@@ -37,6 +41,15 @@ Route::prefix('v1')->group(function () {
             Route::post('/organizations/{organization}/members', [OrganizationController::class, 'addMember']);
             Route::put('/organizations/{organization}/members/{user}', [OrganizationController::class, 'updateMember']);
             Route::delete('/organizations/{organization}/members/{user}', [OrganizationController::class, 'removeMember']);
+        });
+
+        Route::middleware('role:SUPER_ADMIN,ORGANIZATION_ADMIN')->group(function () {
+            Route::post('/events', [EventController::class, 'store']);
+            Route::put('/events/{event}', [EventController::class, 'update']);
+            Route::patch('/events/{event}/status', [EventController::class, 'updateStatus']);
+            Route::get('/events/{event}/officers', [EventController::class, 'officers']);
+            Route::post('/events/{event}/officers', [EventController::class, 'assignOfficer']);
+            Route::delete('/events/{event}/officers/{user}', [EventController::class, 'removeOfficer']);
         });
     });
 });

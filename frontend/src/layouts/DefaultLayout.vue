@@ -19,6 +19,13 @@ async function logout() {
 
       <nav class="app-nav">
         <RouterLink to="/">Beranda</RouterLink>
+        <RouterLink to="/events">Event</RouterLink>
+        <RouterLink
+          v-if="auth.hasAnyRole(['SUPER_ADMIN', 'ORGANIZATION_ADMIN'])"
+          to="/manage/events"
+        >
+          Kelola Event
+        </RouterLink>
         <RouterLink
           v-if="auth.hasAnyRole(['SUPER_ADMIN', 'ORGANIZATION_ADMIN'])"
           to="/organizations"
