@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\EventController;
 use App\Http\Controllers\Api\V1\OrganizationController;
 use App\Http\Controllers\Api\V1\ProfileController;
+use App\Http\Controllers\Api\V1\RegistrationController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -27,6 +28,10 @@ Route::prefix('v1')->group(function () {
         Route::get('/profile', [ProfileController::class, 'show']);
         Route::put('/profile', [ProfileController::class, 'update']);
 
+        Route::get('/registrations', [RegistrationController::class, 'index']);
+        Route::post('/registrations', [RegistrationController::class, 'store'])->middleware('throttle:30,1');
+        Route::get('/registrations/{registration}', [RegistrationController::class, 'show']);
+
         Route::middleware('role:SUPER_ADMIN')->group(function () {
             Route::put('/users/{user}/roles', [UserController::class, 'updateRoles']);
             Route::apiResource('users', UserController::class);
@@ -44,6 +49,7 @@ Route::prefix('v1')->group(function () {
         });
 
         Route::middleware('role:SUPER_ADMIN,ORGANIZATION_ADMIN')->group(function () {
+            Route::post('/registrations/{registration}/cancel', [RegistrationController::class, 'cancel']);
             Route::post('/events', [EventController::class, 'store']);
             Route::put('/events/{event}', [EventController::class, 'update']);
             Route::patch('/events/{event}/status', [EventController::class, 'updateStatus']);

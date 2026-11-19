@@ -36,3 +36,25 @@ export function toDateTimeLocal(value) {
 
   return local.toISOString().slice(0, 16)
 }
+
+export const registrationStatusLabels = {
+  PENDING: 'Menunggu Pembayaran',
+  CONFIRMED: 'Terkonfirmasi',
+  EXPIRED: 'Kedaluwarsa',
+  CANCELLED: 'Dibatalkan',
+}
+
+export const paymentStatusLabels = {
+  PENDING: 'Belum Dibayar',
+  PAID: 'Lunas',
+  FAILED: 'Gagal',
+}
+
+export function registrationStatusLabel(status) {
+  return registrationStatusLabels[status] ?? status
+}
+
+export function paymentStatusLabel(status) {
+  return paymentStatusLabels[status] ?? status
+}
+
