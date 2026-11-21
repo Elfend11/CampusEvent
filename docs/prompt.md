@@ -116,4 +116,64 @@ Jangan membuat analisis ulang. Fokus menghasilkan aplikasi yang benar-benar berj
 
 Jika seluruh Phase 1 selesai, laporkan hasilnya secara singkat dan lanjutkan sesuai roadmap.
 
-# 6 - 
+# 6 - Lanjutkan implementasi CampusEvent dari progres repository saat ini.
+
+Baca TASKS.md, periksa progres aktual, lalu langsung kerjakan task berikutnya yang belum selesai.
+
+Gunakan Build agent. Jangan mengulang analisis, jangan membuat laporan panjang, jangan membuat ulang proyek Laravel/frontend/backend, dan jangan mengubah arsitektur yang telah disepakati.
+
+Implementasikan fitur, jalankan pengujian, perbaiki error, dan perbarui TASKS.md sesuai progres.
+
+Jangan commit, push, merge, atau membuat PR. Git saya kelola manual.
+
+Jika tidak ada keputusan penting yang menghalangi, langsung coding sampai task selesai. Laporkan hasil secara singkat dan lanjutkan ke task berikutnya.
+
+# 7 - Lanjutkan pengembangan CampusEvent dari kondisi repository terakhir.
+
+Baca TASKS.md untuk mengetahui task terakhir yang selesai dan task berikutnya yang belum dikerjakan. Periksa kode terkait seperlunya, lalu langsung implementasikan task berikutnya.
+
+ATURAN:
+1. Gunakan arsitektur dan ketentuan dalam REQUIREMENTS.md, ARCHITECTURE.md, RULES.md, dan TASKS.md.
+2. Jangan mengulang analisis, inspeksi, atau membuat dokumentasi baru yang tidak diperlukan.
+3. Jangan membuat ulang proyek Laravel, backend, maupun frontend yang sudah tersedia.
+4. Jangan mengubah teknologi atau arsitektur yang telah disepakati.
+5. Implementasikan fitur sampai berfungsi, jalankan pengujian, dan perbaiki error.
+6. Perbarui TASKS.md berdasarkan pekerjaan yang benar-benar selesai.
+7. Jangan mengerjakan task yang sudah selesai atau membuat implementasi duplikat.
+8. Jangan commit, push, merge, atau membuat Pull Request. Semua Git dikelola manual oleh saya.
+9. Jika ada keputusan penting yang belum ditentukan dan benar-benar menghalangi implementasi, ajukan satu pertanyaan singkat. Selain itu, lanjutkan tanpa meminta persetujuan untuk setiap task kecil.
+
+FOKUS:
+- Prioritaskan implementasi kode dan fungsionalitas aplikasi.
+- Kerjakan roadmap secara berurutan.
+- Jangan berhenti hanya untuk memberikan rekomendasi atau rencana.
+- Jangan menghabiskan token untuk laporan panjang.
+
+MULAI SEKARANG:
+Identifikasi task berikutnya yang belum selesai, langsung coding, uji hasilnya, perbaiki jika gagal, kemudian lanjutkan pekerjaan sesuai roadmap.
+
+Berikan laporan singkat setelah satu bagian pekerjaan selesai: fitur, file yang berubah, hasil tes, dan task berikutnya.
+
+# 8 - Lakukan FINAL REVIEW terhadap seluruh implementasi CampusEvent setelah Phase 01–11 selesai.
+
+Fokus pada:
+1. Periksa apakah seluruh hasil implementasi sesuai REQUIREMENTS.md, ARCHITECTURE.md, RULES.md, dan TASKS.md.
+2. Verifikasi hasil pengujian yang sudah dilaporkan. Jangan mengklaim tes berhasil jika tidak dijalankan ulang atau tidak ada bukti hasilnya.
+3. Periksa keamanan, RBAC, transaksi, concurrency, idempotency, dan kemungkinan bug kritis.
+4. Periksa konfigurasi environment dan pastikan tidak ada file rahasia yang akan masuk Git.
+5. Periksa frontend dan backend dapat dijalankan.
+6. Periksa dokumentasi dan README sesuai kondisi aplikasi aktual.
+
+Jangan menambahkan fitur baru, mengubah arsitektur, atau melakukan refactoring besar.
+
+Jangan commit, push, merge, atau membuat Pull Request. Git dikelola manual oleh pengguna.
+
+Berikan laporan singkat berisi:
+- Temuan kritis dan tingkat risikonya.
+- Masalah yang perlu diperbaiki.
+- Hasil validasi.
+- Status kesiapan aplikasi.
+
+Jika ditemukan masalah, perbaiki hanya masalah yang jelas dan tidak membutuhkan keputusan arsitektur baru. Jika tidak ada masalah kritis, nyatakan siap untuk approval pengguna.
+
+Setelah selesai, berhenti dan tunggu instruksi.

@@ -20,6 +20,11 @@ class PaymentResource extends JsonResource
             'amount' => (float) $this->amount,
             'status' => $this->status->value,
             'paid_at' => $this->paid_at?->toIso8601String(),
+            'created_at' => $this->created_at?->toIso8601String(),
+            'registration' => $this->whenLoaded(
+                'registration',
+                fn () => new RegistrationResource($this->registration),
+            ),
         ];
     }
 }

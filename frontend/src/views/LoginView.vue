@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 import { useAuthStore } from '@/stores/auth'
 
@@ -68,5 +68,10 @@ async function submit() {
         {{ submitting ? 'Memproses...' : 'Masuk' }}
       </button>
     </form>
+
+    <p class="muted">
+      Belum punya akun?
+      <RouterLink to="/register">Daftar sebagai mahasiswa</RouterLink>
+    </p>
   </section>
 </template>

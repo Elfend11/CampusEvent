@@ -47,6 +47,21 @@ async function changeStatus(event, target) {
   }
 }
 
+async function remove(event) {
+  if (!window.confirm(`Hapus event "${event.title}"? Tindakan ini tidak dapat dibatalkan.`)) {
+    return
+  }
+
+  error.value = null
+
+  try {
+    await api.delete(`/events/${event.id}`)
+    await load()
+  } catch (err) {
+    error.value = err.response?.data?.message ?? 'Gagal menghapus event.'
+  }
+}
+
 onMounted(load)
 </script>
 
@@ -75,6 +90,9 @@ onMounted(load)
         </div>
 
         <div class="row-actions">
+          <RouterLink :to="`/reports/events/${event.id}`" class="secondary-link">
+            Laporan
+          </RouterLink>
           <RouterLink :to="`/manage/events/${event.id}/edit`" class="secondary-link">
             Edit
           </RouterLink>
@@ -87,6 +105,7 @@ onMounted(load)
           >
             {{ action.label }}
           </button>
+          <button type="button" class="link-button" @click="remove(event)">Hapus</button>
         </div>
       </li>
     </ul>

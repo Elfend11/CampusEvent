@@ -20,6 +20,11 @@ class RegistrationResource extends JsonResource
             'status' => $this->status->value,
             'expires_at' => $this->expires_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),
+            'user' => $this->whenLoaded('user', fn () => [
+                'id' => $this->user->id,
+                'name' => $this->user->name,
+                'email' => $this->user->email,
+            ]),
             'event' => $this->whenLoaded('event', fn () => new EventResource($this->event)),
             'payment' => $this->whenLoaded('payment', fn () => $this->payment
                 ? new PaymentResource($this->payment)

@@ -103,7 +103,8 @@ class RegistrationTest extends TestCase
             ->assertCreated()
             ->assertJsonPath('data.status', RegistrationStatus::PENDING->value)
             ->assertJsonPath('data.ticket', null)
-            ->assertJsonPath('data.payment', null);
+            ->assertJsonPath('data.payment.status', \App\Enums\PaymentStatus::PENDING->value)
+            ->assertJsonPath('data.payment.amount', 25000);
 
         $expiresAt = \Illuminate\Support\Carbon::parse($response->json('data.expires_at'));
         $this->assertEqualsWithDelta(

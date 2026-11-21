@@ -18,6 +18,12 @@ const router = createRouter({
       meta: { guestOnly: true },
     },
     {
+      path: '/register',
+      name: 'register',
+      component: () => import('@/views/RegisterView.vue'),
+      meta: { guestOnly: true },
+    },
+    {
       path: '/dashboard',
       name: 'dashboard',
       component: () => import('@/views/DashboardView.vue'),
@@ -46,6 +52,36 @@ const router = createRouter({
       component: () => import('@/views/events/EventDetailView.vue'),
     },
     {
+      path: '/registrations',
+      name: 'registrations',
+      component: () => import('@/views/registrations/MyRegistrationsView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/payments/:id',
+      name: 'payment',
+      component: () => import('@/views/payments/PaymentView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/tickets',
+      name: 'tickets',
+      component: () => import('@/views/tickets/MyTicketsView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/tickets/:id',
+      name: 'ticket-detail',
+      component: () => import('@/views/tickets/TicketView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/check-in',
+      name: 'check-in',
+      component: () => import('@/views/checkin/CheckInView.vue'),
+      meta: { requiresAuth: true, roles: ['CHECK_IN_OFFICER', 'SUPER_ADMIN'] },
+    },
+    {
       path: '/manage/events',
       name: 'manage-events',
       component: () => import('@/views/events/ManageEventsView.vue'),
@@ -61,6 +97,12 @@ const router = createRouter({
       path: '/manage/events/:id/edit',
       name: 'event-edit',
       component: () => import('@/views/events/EventFormView.vue'),
+      meta: { requiresAuth: true, roles: ['SUPER_ADMIN', 'ORGANIZATION_ADMIN'] },
+    },
+    {
+      path: '/reports/events/:id',
+      name: 'event-report',
+      component: () => import('@/views/reports/ReportView.vue'),
       meta: { requiresAuth: true, roles: ['SUPER_ADMIN', 'ORGANIZATION_ADMIN'] },
     },
   ],

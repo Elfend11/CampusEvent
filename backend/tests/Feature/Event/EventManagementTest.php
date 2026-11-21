@@ -8,6 +8,7 @@ use App\Models\Event;
 use App\Models\EventOfficer;
 use App\Models\Organization;
 use App\Models\OrganizationMember;
+use App\Models\Registration;
 use App\Models\User;
 use App\Models\UserRoleAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -259,5 +260,71 @@ class EventManagementTest extends TestCase
             'event_id' => $event->id,
             'user_id' => $officer->id,
         ]);
+    }
+
+    public function test_organization_admin_can_delete_own_empty_event(): void
+    {
+        $organization = Organization::factory()->create();
+        $admin = $this->organizationAdminOf($organization);
+        $event = Event::factory()->create(['organization_id' => $organization->id]);
+
+        $this->actingAs($admin)
+            ->deleteJson("/api/v1/events/{$event->id}")
+            ->assertNoContent();
+
+        $this->assertDatabaseMissing('events', ['id' => $event->id]);
+    }
+
+    public function test_event_with_registrations_cannot_be_deleted(): void
+    {
+        $organization = Organization::factory()->create();
+        $admin = $this->organizationAdminOf($organization);
+        $event = Event::factory()->create(['organization_id' => $organization->id]);
+        Registration::factory()->create(['event_id' => $event->id]);
+
+        $this->actingAs($admin)
+            ->deleteJson("/api/v1/events/{$event->id}")
+            ->assertStatus(422);
+
+        $this->assertDatabaseHas('events', ['id' => $event->id]);
+        $this->assertSame(1, $event->registrations()->count());
+    }
+
+    public function test_organization_admin_cannot_delete_another_organizations_event(): void
+    {
+        $own = Organization::factory()->create();
+        $other = Organization::factory()->create();
+        $admin = $this->organizationAdminOf($own);
+        $event = Event::factory()->create(['organization_id' => $other->id]);
+
+        $this->actingAs($admin)
+            ->deleteJson("/api/v1/events/{$event->id}")
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('events', ['id' => $event->id]);
+    }
+
+    public function test_student_cannot_delete_event(): void
+    {
+        $student = $this->userWithRole(UserRole::STUDENT);
+        $event = Event::factory()->create();
+
+        $this->actingAs($student)
+            ->deleteJson("/api/v1/events/{$event->id}")
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('events', ['id' => $event->id]);
+    }
+
+    public function test_super_admin_can_delete_empty_event(): void
+    {
+        $superAdmin = $this->userWithRole(UserRole::SUPER_ADMIN);
+        $event = Event::factory()->create();
+
+        $this->actingAs($superAdmin)
+            ->deleteJson("/api/v1/events/{$event->id}")
+            ->assertNoContent();
+
+        $this->assertDatabaseMissing('events', ['id' => $event->id]);
     }
 }

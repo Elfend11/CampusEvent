@@ -126,6 +126,19 @@ class EventController extends Controller
         ]);
     }
 
+    public function destroy(Event $event): Response
+    {
+        $this->authorize('delete', $event);
+
+        if ($event->registrations()->exists()) {
+            abort(422, 'Event yang sudah memiliki pendaftaran tidak dapat dihapus.');
+        }
+
+        $event->delete();
+
+        return response()->noContent();
+    }
+
     public function officers(Event $event): AnonymousResourceCollection
     {
         $this->authorize('manageOfficers', $event);
