@@ -106,7 +106,22 @@ onMounted(load)
           <template v-if="registration.ticket">
             <p class="muted">Kode tiket</p>
             <code class="ticket-code">{{ registration.ticket.ticket_code }}</code>
+            <RouterLink :to="`/tickets/${registration.ticket.id}`" class="secondary-link">
+              Lihat tiket
+            </RouterLink>
           </template>
+
+          <RouterLink
+            v-if="
+              registration.payment &&
+              registration.status === 'PENDING' &&
+              isReservationActive(registration)
+            "
+            :to="`/payments/${registration.payment.id}`"
+            class="primary-link"
+          >
+            Bayar
+          </RouterLink>
 
           <RouterLink :to="`/events/${registration.event?.id}`" class="secondary-link">
             Detail event

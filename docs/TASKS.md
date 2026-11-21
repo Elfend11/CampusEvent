@@ -1253,58 +1253,82 @@ Gunakan status berikut untuk memantau perkembangan:
 
 ### Phase 06 — Registration & Reservation
 
-- [ ] Task 6.1 Registration API
-- [ ] Task 6.2 Ticket Inventory
-- [ ] Task 6.3 Reservation Service
-- [ ] Task 6.4 Reservation Expiration Foundation
-- [ ] Task 6.5 Frontend Registration
-- [ ] Task 6.6 Registration Testing
+- [x] Task 6.1 Registration API
+- [x] Task 6.2 Ticket Inventory
+- [x] Task 6.3 Reservation Service
+- [x] Task 6.4 Reservation Expiration Foundation
+- [x] Task 6.5 Frontend Registration
+- [x] Task 6.6 Registration Testing
 
 ### Phase 07 — Simulated Payment
 
-- [ ] Task 7.1 Payment API
-- [ ] Task 7.2 Payment Simulation
-- [ ] Task 7.3 Payment Confirmation Service
-- [ ] Task 7.4 Idempotency
-- [ ] Task 7.5 Frontend Payment
-- [ ] Task 7.6 Payment Testing
+- [x] Task 7.1 Payment API
+- [x] Task 7.2 Payment Simulation
+- [x] Task 7.3 Payment Confirmation Service
+- [x] Task 7.4 Idempotency
+- [x] Task 7.5 Frontend Payment
+- [x] Task 7.6 Payment Testing
 
 ### Phase 08 — E-Ticket & QR Code
 
-- [ ] Task 8.1 Ticket Generation
-- [ ] Task 8.2 QR Code Generation
-- [ ] Task 8.3 Ticket Validation API
-- [ ] Task 8.4 Frontend E-Ticket
-- [ ] Task 8.5 Ticket Testing
+- [x] Task 8.1 Ticket Generation
+- [x] Task 8.2 QR Code Generation
+- [x] Task 8.3 Ticket Validation API
+- [x] Task 8.4 Frontend E-Ticket
+- [x] Task 8.5 Ticket Testing
 
 ### Phase 09 — Check-in Management
 
-- [ ] Task 9.1 Check-in API
-- [ ] Task 9.2 Check-in Service
-- [ ] Task 9.3 Transactional Check-in
-- [ ] Task 9.4 Frontend Check-in
-- [ ] Task 9.5 Check-in Testing
+- [x] Task 9.1 Check-in API
+- [x] Task 9.2 Check-in Service
+- [x] Task 9.3 Transactional Check-in
+- [x] Task 9.4 Frontend Check-in
+- [x] Task 9.5 Check-in Testing
 
 ### Phase 10 — Dashboard & Reporting
 
-- [ ] Task 10.1 Dashboard API
-- [ ] Task 10.2 Super Admin Dashboard
-- [ ] Task 10.3 Organization Dashboard
-- [ ] Task 10.4 Student Dashboard
-- [ ] Task 10.5 Reporting
-- [ ] Task 10.6 Dashboard Testing
+- [x] Task 10.1 Dashboard API
+- [x] Task 10.2 Super Admin Dashboard
+- [x] Task 10.3 Organization Dashboard
+- [x] Task 10.4 Student Dashboard
+- [x] Task 10.5 Reporting
+- [x] Task 10.6 Dashboard Testing
 
 ### Phase 11 — Integration & Final Validation
 
-- [ ] Task 11.1 End-to-End Integration
-- [ ] Task 11.2 The 30% Hard Problem Diagnostic
-- [ ] Task 11.3 Critical Concurrency Test
-- [ ] Task 11.4 ACID and Rollback Testing
-- [ ] Task 11.5 Deadlock and Idempotency Testing
-- [ ] Task 11.6 Security Validation
-- [ ] Task 11.7 Final Functional Testing
-- [ ] Task 11.8 UI and Application Validation
-- [ ] Task 11.9 Documentation and Repository Validation
+- [x] Task 11.1 End-to-End Integration
+- [x] Task 11.2 The 30% Hard Problem Diagnostic
+- [x] Task 11.3 Critical Concurrency Test
+- [x] Task 11.4 ACID and Rollback Testing
+- [x] Task 11.5 Deadlock and Idempotency Testing
+- [x] Task 11.6 Security Validation
+- [x] Task 11.7 Final Functional Testing
+- [x] Task 11.8 UI and Application Validation
+- [x] Task 11.9 Documentation and Repository Validation
+
+### Phase 11 Execution Evidence
+
+- End-to-end flow: `backend/tests/Feature/Integration/EndToEndFlowTest.php` (login, organization, event, registration, reservation, payment, e-ticket, check-in, reports).
+- ACID/rollback: `backend/tests/Feature/Integration/TransactionIntegrityTest.php` and `backend/tests/Feature/Payment/PaymentTest.php`.
+- Security: `backend/tests/Feature/Integration/SecurityValidationTest.php`.
+- Concurrency evidence and reproduction commands: `docs/HARD_PROBLEM.md`.
+  - `php tests/Concurrency/run.php` (paid and free, 100 requests / 5 tickets)
+  - `php tests/Concurrency/run_payment.php` (10 concurrent confirmations, 1 ticket)
+  - `php tests/Concurrency/run_checkin.php` (20 concurrent scans, 1 attendance)
+  - `php tests/Concurrency/run_expiry.php` (10 concurrent expiration processes, 1 release each)
+- Full backend suite: 122 tests, 628 assertions passing on MySQL InnoDB.
+- Frontend production build: `npm run build` successful.
+
+### Final Review Fixes
+
+Final review against REQUIREMENTS.md and ARCHITECTURE.md found and fixed two missing
+documented capabilities:
+
+- Student self-registration: `POST /api/v1/auth/register` (FR-01, AC-01) with the
+  `STUDENT` role assigned server-side, plus the frontend `/register` page.
+- Event deletion: `DELETE /api/v1/events/{id}` (FR-14) for the owning organization
+  admin or super admin. Events that already have registrations are rejected with
+  `422` to preserve BR-05 registration/ticket history.
 
 ---
 

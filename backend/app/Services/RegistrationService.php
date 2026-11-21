@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\EventStatus;
+use App\Enums\PaymentStatus;
 use App\Enums\RegistrationStatus;
 use App\Enums\TicketStatus;
 use App\Models\Event;
@@ -12,7 +13,10 @@ use Illuminate\Support\Facades\DB;
 
 class RegistrationService
 {
-    public function __construct(private readonly TicketService $tickets) {}
+    public function __construct(
+        private readonly TicketService $tickets,
+        private readonly PaymentService $payments,
+    ) {}
 
     /**
      * Create a reservation (paid event) or an immediate confirmation (free event).
@@ -42,11 +46,16 @@ class RegistrationService
 
             if ($registration !== null && $registration->isReservationExpired()) {
                 $registration->update(['status' => RegistrationStatus::EXPIRED]);
+                $registration->payment()->update(['status' => PaymentStatus::FAILED]);
                 $this->releaseReservedQuota($lockedEvent);
                 $registration->refresh();
             }
 
             if ($registration?->status === RegistrationStatus::PENDING) {
+                if (! $lockedEvent->isFree()) {
+                    $this->payments->ensureExists($registration, $lockedEvent);
+                }
+
                 return [
                     'registration' => $registration->fresh(['event.organization', 'payment', 'ticket']),
                     'created' => false,
@@ -85,6 +94,7 @@ class RegistrationService
                 ])->save();
 
                 $lockedEvent->increment('reserved_count');
+                $this->payments->resetToPending($registration, $lockedEvent);
             }
 
             return [

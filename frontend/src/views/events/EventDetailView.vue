@@ -89,7 +89,7 @@ async function register() {
   try {
     const { data } = await api.post('/registrations', { event_id: event.value.id })
     registration.value = data.data
-    ticketToken.value = data.ticket_token
+    ticketToken.value = data.data.ticket_token
 
     message.value =
       data.data.status === 'CONFIRMED'
@@ -183,6 +183,10 @@ onMounted(async () => {
               <code>{{ ticketToken }}</code>
             </p>
 
+            <RouterLink v-if="registration.ticket?.id" :to="`/tickets/${registration.ticket.id}`" class="secondary-link">
+              Lihat tiket digital
+            </RouterLink>
+
             <RouterLink to="/registrations" class="secondary-link">
               Lihat registrasi saya
             </RouterLink>
@@ -194,7 +198,18 @@ onMounted(async () => {
               Sisa waktu pembayaran:
               <CountdownTimer :expires-at="registration.expires_at" />
             </p>
-            <p class="muted">Pembayaran akan tersedia pada tahap berikutnya.</p>
+
+            <RouterLink
+              v-if="registration.payment"
+              :to="`/payments/${registration.payment.id}`"
+              class="primary-link"
+            >
+              Bayar Sekarang
+            </RouterLink>
+
+            <p v-else class="muted">
+              Pembayaran belum tersedia untuk reservasi ini.
+            </p>
           </div>
 
           <template v-else>

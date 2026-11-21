@@ -32,6 +32,16 @@ async function logout() {
         >
           Organisasi
         </RouterLink>
+        <RouterLink v-if="auth.isAuthenticated" to="/registrations">
+          Registrasi
+        </RouterLink>
+        <RouterLink v-if="auth.isAuthenticated" to="/tickets">Tiket</RouterLink>
+        <RouterLink
+          v-if="auth.hasAnyRole(['CHECK_IN_OFFICER', 'SUPER_ADMIN'])"
+          to="/check-in"
+        >
+          Check-in
+        </RouterLink>
         <RouterLink v-if="auth.isAuthenticated" to="/dashboard">Dashboard</RouterLink>
         <RouterLink v-else to="/login">Masuk</RouterLink>
       </nav>

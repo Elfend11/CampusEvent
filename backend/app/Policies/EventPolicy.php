@@ -46,6 +46,16 @@ class EventPolicy
         return $this->update($user, $event);
     }
 
+    public function delete(User $user, Event $event): bool
+    {
+        return $this->isSuperAdmin($user) || $this->isOrganizationAdminOf($user, $event);
+    }
+
+    public function viewReport(User $user, Event $event): bool
+    {
+        return $this->isSuperAdmin($user) || $this->isOrganizationAdminOf($user, $event);
+    }
+
     private function isSuperAdmin(User $user): bool
     {
         return $user->hasRole(UserRole::SUPER_ADMIN);
