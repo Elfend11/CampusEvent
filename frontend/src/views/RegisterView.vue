@@ -19,14 +19,21 @@ async function submit() {
   error.value = null
 
   try {
-    await auth.register({
+    const result = await auth.register({
       name: name.value,
       email: email.value,
       password: password.value,
       password_confirmation: passwordConfirmation.value,
     })
 
-    await router.replace('/dashboard')
+    await router.replace({
+      name: 'verify-email',
+      query: {
+        email: result.data?.email ?? email.value,
+        sent: result.data?.email_sent ? '1' : '0',
+        cooldown: String(result.data?.resend_after_seconds ?? 0),
+      },
+    })
   } catch (err) {
     const errors = err.response?.data?.errors
 

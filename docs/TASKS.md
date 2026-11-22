@@ -4,8 +4,8 @@
 **Project:** CampusEvent  
 **Project Name:** Integrated Campus Event & Ticketing Management System  
 **Document:** Development Roadmap & AI Execution Plan  
-**Version:** 1.1  
-**Status:** Approved (Amendment 1)  
+**Version:** 1.2  
+**Status:** Approved (Amendment 2)  
 **Development Strategy:** Sequential Task Execution  
 **Primary Objective:** Membangun sistem manajemen event dan tiket kampus secara bertahap, terstruktur, teruji, dan sesuai dengan seluruh dokumentasi proyek.
 
@@ -1193,6 +1193,7 @@ AI tidak boleh mengubah kebutuhan atau arsitektur secara sepihak.
 | 1.1 | Task 6.3, 6.4 | Event gratis dan `expires_at` | F-02, F-04 |
 | 1.1 | Task 7.4 | Retry pembayaran dan idempotency | F-08 |
 | 1.1 | Task 9.1, 9.2 | Pemeriksaan penugasan petugas | F-03 |
+| 1.2 | Tahap 1 | Security hardening, verifikasi email OTP, backfill akun lama, dan proteksi data petugas | F-14, F-15 |
 
 ---
 
@@ -1329,6 +1330,40 @@ documented capabilities:
 - Event deletion: `DELETE /api/v1/events/{id}` (FR-14) for the owning organization
   admin or super admin. Events that already have registrations are rejected with
   `422` to preserve BR-05 registration/ticket history.
+
+### Tahap 1 — Security Hardening & Email OTP
+
+Status: **AWAITING USER REVIEW**. UI redesign belum dimulai.
+
+- [x] Menutup kebocoran email petugas pada endpoint event publik; data petugas hanya dikirim kepada pengelola event yang berwenang.
+- [x] Memindahkan kredensial database hardcoded dari `backend/phpunit.xml` ke environment lokal/CI.
+- [x] Menambahkan migration backfill `email_verified_at` untuk akun lama.
+- [x] Menambahkan tabel `email_verification_codes` dengan `UNIQUE(user_id)`.
+- [x] Implementasi OTP enam digit melalui Laravel Mail/Gmail SMTP dan penyimpanan hash.
+- [x] Menerapkan masa berlaku 10 menit, batas 5 percobaan, cooldown 60 detik, dan rate limit endpoint.
+- [x] Registrasi baru tidak auto-login; akun belum terverifikasi ditolak saat login dengan `403 EMAIL_UNVERIFIED`.
+- [x] Endpoint `POST /api/v1/auth/verify-otp` dan `POST /api/v1/auth/resend-otp`.
+- [x] Halaman frontend `/verify-email` dan alur registrasi tanpa auto-login.
+- [x] Akun yang dibuat administrator dianggap terverifikasi agar tidak terkunci.
+- [x] Pengujian OTP valid/salah/kedaluwarsa, resend, rate limit, login belum terverifikasi, akun lama, kegagalan pengiriman email, dan kebocoran data petugas.
+
+Bukti pengujian:
+
+- `php artisan test --filter=EmailVerificationTest` — 14 tests, 99 assertions.
+- `php artisan test --filter=AuthenticationTest` — 10 tests, 42 assertions.
+- `php artisan test --filter=EventManagementTest` — 19 tests, 55 assertions.
+- Full backend suite — 137 tests, 727 assertions.
+- Frontend production build — `npm run build` berhasil.
+
+Migration baru:
+
+- `2026_11_22_000001_backfill_email_verified_at.php`
+- `2026_11_22_000002_create_email_verification_codes_table.php`
+
+Catatan:
+- Backfill akun lama bersifat no-op dan tidak memverifikasi mahasiswa yang belum menyelesaikan OTP.
+- `DatabaseSeeder` hanya membuat satu akun `SUPER_ADMIN` dari variabel environment lokal dan bersifat idempotent.
+- Perubahan lokal `docs/prompt.md` tidak diubah.
 
 ---
 

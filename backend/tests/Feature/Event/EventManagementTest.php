@@ -233,6 +233,33 @@ class EventManagementTest extends TestCase
             ->assertOk();
     }
 
+    public function test_public_event_detail_does_not_expose_officer_data(): void
+    {
+        $event = Event::factory()->create(['status' => EventStatus::PUBLISHED]);
+        $officer = $this->userWithRole(UserRole::CHECK_IN_OFFICER);
+        $officer->forceFill(['email' => 'petugas.rahasia@example.test'])->save();
+        EventOfficer::create(['event_id' => $event->id, 'user_id' => $officer->id]);
+
+        $response = $this->getJson("/api/v1/events/{$event->id}");
+
+        $response->assertOk()->assertJsonMissingPath('data.officers');
+        $this->assertStringNotContainsString($officer->email, $response->getContent());
+    }
+
+    public function test_event_manager_still_receives_officer_data(): void
+    {
+        $superAdmin = $this->userWithRole(UserRole::SUPER_ADMIN);
+        $event = Event::factory()->create(['status' => EventStatus::PUBLISHED]);
+        $officer = $this->userWithRole(UserRole::CHECK_IN_OFFICER);
+        EventOfficer::create(['event_id' => $event->id, 'user_id' => $officer->id]);
+
+        $this->actingAs($superAdmin)
+            ->getJson("/api/v1/events/{$event->id}")
+            ->assertOk()
+            ->assertJsonPath('data.officers.0.id', $officer->id)
+            ->assertJsonPath('data.officers.0.email', $officer->email);
+    }
+
     public function test_manager_can_assign_and_remove_officers(): void
     {
         $superAdmin = $this->userWithRole(UserRole::SUPER_ADMIN);

@@ -4,9 +4,9 @@
 ## System Architecture & Technical Design
 
 **Document Type:** Software Architecture Specification  
-**Version:** 1.1  
+**Version:** 1.2  
 **Project:** CampusEvent  
-**Status:** Approved Architecture (Amendment 1)  
+**Status:** Approved Architecture (Amendment 2)  
 **Architecture Pattern:** 3-Tier Architecture + MVC REST API
 
 ---
@@ -212,6 +212,7 @@ Database CampusEvent dirancang menggunakan relational database dengan prinsip:
 | Entity | Description |
 |---|---|
 | users | Data pengguna |
+| email_verification_codes | Kode OTP verifikasi email (hash, masa berlaku, jumlah percobaan, cooldown pengiriman) |
 | user_roles | Role yang dimiliki pengguna (satu pengguna dapat memiliki beberapa role) |
 | organizations | Data organisasi |
 | organization_members | Relasi pengguna dan organisasi |
@@ -228,6 +229,7 @@ Database CampusEvent dirancang menggunakan relational database dengan prinsip:
 erDiagram
     USERS ||--o{ ORGANIZATION_MEMBERS : joins
     USERS ||--o{ USER_ROLES : has
+    USERS ||--o| EMAIL_VERIFICATION_CODES : verifies
     USERS ||--o{ EVENT_OFFICERS : assigned
     ORGANIZATIONS ||--o{ ORGANIZATION_MEMBERS : has
     ORGANIZATIONS ||--o{ EVENTS : organizes
@@ -243,6 +245,16 @@ erDiagram
         string name
         string email UK
         string password
+        datetime email_verified_at
+    }
+
+    EMAIL_VERIFICATION_CODES {
+        bigint id PK
+        bigint user_id FK, UK
+        string code_hash
+        tinyint attempts
+        datetime expires_at
+        datetime sent_at
     }
 
     USER_ROLES {
@@ -365,6 +377,17 @@ Catatan: Diagram merupakan rancangan konseptual. Implementasi final harus memper
 - Check-in harus dilakukan oleh petugas yang memiliki otorisasi.
 - Petugas hanya boleh melakukan check-in untuk event yang ditugaskan kepadanya.
 
+### Email Verification Codes
+
+- Setiap pengguna hanya memiliki maksimal satu record kode verifikasi aktif (`UNIQUE(user_id)`).
+- Hanya hash kode OTP yang disimpan; kode plaintext tidak pernah dipersistensi.
+- `expires_at` wajib berada di masa depan saat kode diterbitkan.
+- `attempts` tidak boleh melebihi batas percobaan yang dikonfigurasi.
+- `sent_at` mencatat waktu penerbitan OTP, termasuk saat pengiriman gagal, untuk mempertahankan cooldown.
+- Kode dihapus setelah verifikasi berhasil atau kedaluwarsa.
+- Setelah batas percobaan terlampaui, kode ditolak sampai pengguna meminta kode baru.
+- Pengiriman ulang ditolak selama cooldown belum berlalu.
+
 ### User Roles
 
 - Satu pengguna dapat memiliki lebih dari satu role.
@@ -387,6 +410,8 @@ Catatan: Diagram merupakan rancangan konseptual. Implementasi final harus memper
 | Table | Index / Constraint | Purpose |
 |---|---|---|
 | users | UNIQUE(email) | Mencegah email ganda |
+| email_verification_codes | UNIQUE(user_id) | Satu kode verifikasi aktif per pengguna |
+| email_verification_codes | INDEX(expires_at) | Pembersihan kode kedaluwarsa |
 | user_roles | UNIQUE(user_id, role) | Mencegah role ganda pada pengguna yang sama |
 | organization_members | UNIQUE(organization_id, user_id) | Mencegah keanggotaan ganda |
 | event_officers | UNIQUE(event_id, user_id) | Mencegah penugasan petugas ganda |
@@ -606,9 +631,11 @@ Seluruh endpoint yang membutuhkan autentikasi harus dilindungi middleware yang s
 | Method | Endpoint | Function |
 |---|---|---|
 | POST | /auth/register | Registrasi |
+| POST | /auth/verify-otp | Verifikasi email dengan kode OTP |
+| POST | /auth/resend-otp | Kirim ulang kode OTP |
 | POST | /auth/login | Login |
 | POST | /auth/logout | Logout |
-| GET | /auth/me | Profil pengguna |
+| GET | /auth/user | Profil pengguna |
 
 ### Organizations
 
@@ -665,6 +692,18 @@ Pembatalan mandiri oleh mahasiswa tidak termasuk cakupan versi 1. Endpoint pemba
 | GET | /reports/attendance/{id} | Laporan kehadiran |
 
 Endpoint dapat disesuaikan selama implementasi dengan tetap mempertahankan fungsi dan batas aksesnya.
+
+## 7.3 Email Verification Flow
+
+Registrasi mandiri melalui `POST /auth/register` tidak membuat sesi autentikasi.
+
+1. Sistem membuat akun dengan `email_verified_at = null`, menetapkan role `STUDENT`, dan menerbitkan kode OTP enam digit.
+2. Kode disimpan sebagai hash beserta `expires_at`, `attempts = 0`, dan `sent_at = null`.
+3. Email OTP dikirim melalui Laravel Mail. Jika pengiriman gagal, akun dan record OTP tetap tersimpan, `sent_at` merekam waktu penerbitan untuk menjaga cooldown, dan registrasi mengembalikan `201` dengan `email_sent: false`.
+4. `POST /auth/verify-otp` memeriksa kode terhadap hash. Kode yang salah menambah `attempts`; kode kedaluwarsa atau yang melewati batas percobaan ditolak. Verifikasi berhasil menandai email terverifikasi dan menghapus record OTP tanpa melakukan login otomatis.
+5. `POST /auth/resend-otp` menerbitkan kode baru hanya setelah cooldown berlalu dan endpoint dilindungi rate limit.
+6. `POST /auth/login` menolak akun yang belum terverifikasi dengan status `403` dan kode `EMAIL_UNVERIFIED`.
+7. Migration backfill menandai seluruh akun lama sebagai terverifikasi agar tetap dapat login tanpa OTP ulang. Akun yang dibuat oleh administrator juga dianggap terverifikasi.
 
 ---
 
@@ -996,6 +1035,9 @@ Security diterapkan pada seluruh lapisan aplikasi.
 - Rate limiting pada endpoint sensitif.
 - Validasi kepemilikan data.
 - Pengelolaan token secara aman.
+- Kode OTP verifikasi email disimpan sebagai hash, memiliki masa berlaku, batas percobaan, dan cooldown pengiriman ulang.
+- Registrasi mandiri tidak membuat sesi login; akun belum terverifikasi ditolak saat login.
+- Respons event publik tidak memuat data petugas; data petugas hanya dikirim kepada pengelola event yang berwenang.
 
 ## 13.3 Database Security
 
@@ -1189,11 +1231,15 @@ Perubahan arsitektur harus dievaluasi terlebih dahulu agar tidak bertentangan de
 | 1.1 | §7.1, §7.2, §13.2 | Autentikasi Sanctum, CSRF, dan pembatalan administratif | F-06, F-09 |
 | 1.1 | §9.7, §10.2 | Aturan pembatalan administratif dan idempotency | F-06, F-08 |
 | 1.1 | §15.1 | Lokasi proyek, runtime PHP, dan verifikasi Composer | F-10, F-11, F-13 |
+| 1.2 | §5.2, §5.3 | Entitas `email_verification_codes` dan atribut `users.email_verified_at` | F-14 |
+| 1.2 | §5.4, §5.5 | Aturan integritas dan indeks kode verifikasi email | F-14 |
+| 1.2 | §7.2, §7.3 | Endpoint verifikasi/kirim ulang OTP dan alur verifikasi email | F-14 |
+| 1.2 | §13.2 | Hash OTP, rate limit, backfill akun lama, dan proteksi data petugas | F-14, F-15 |
 
 **Project:** CampusEvent  
 **Document:** ARCHITECTURE.md  
-**Version:** 1.1  
-**Status:** Approved Architecture (Amendment 1)
+**Version:** 1.2  
+**Status:** Approved Architecture (Amendment 2)
 
 ---
 

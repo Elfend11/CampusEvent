@@ -43,18 +43,23 @@ class EndToEndFlowTest extends TestCase
     /**
      * @param  list<UserRole>  $roles
      */
-    private function createUserThroughApi(User $superAdmin, string $name, string $email, array $roles): User
+    private function createTestUser(string $name, string $email, array $roles): User
     {
-        $response = $this->actingAs($superAdmin)
-            ->postJson('/api/v1/users', [
-                'name' => $name,
-                'email' => $email,
-                'password' => self::PASSWORD,
-                'roles' => array_map(fn (UserRole $role) => $role->value, $roles),
-            ])
-            ->assertCreated();
+        $user = User::factory()->create([
+            'name' => $name,
+            'email' => $email,
+            'password' => bcrypt(self::PASSWORD),
+            'email_verified_at' => now(),
+        ]);
 
-        return User::findOrFail($response->json('data.id'));
+        foreach ($roles as $role) {
+            UserRoleAssignment::create([
+                'user_id' => $user->id,
+                'role' => $role->value,
+            ]);
+        }
+
+        return $user;
     }
 
     private function login(User $user): void
@@ -93,20 +98,17 @@ class EndToEndFlowTest extends TestCase
             ->json('data');
 
         // 2. Admin Organisasi, Petugas Check-in and Mahasiswa accounts.
-        $orgAdmin = $this->createUserThroughApi(
-            $superAdmin,
+        $orgAdmin = $this->createTestUser(
             'Admin Organisasi',
             'admin.org@campusevent.test',
-            [UserRole::ORGANIZATION_ADMIN, UserRole::STUDENT],
+            [UserRole::ORGANIZATION_ADMIN],
         );
-        $officer = $this->createUserThroughApi(
-            $superAdmin,
+        $officer = $this->createTestUser(
             'Petugas Check-in',
             'officer@campusevent.test',
             [UserRole::CHECK_IN_OFFICER],
         );
-        $student = $this->createUserThroughApi(
-            $superAdmin,
+        $student = $this->createTestUser(
             'Mahasiswa Peserta',
             'student@campusevent.test',
             [UserRole::STUDENT],
