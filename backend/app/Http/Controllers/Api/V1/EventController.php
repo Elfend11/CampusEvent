@@ -87,10 +87,16 @@ class EventController extends Controller
     {
         $this->authorize('view', $event);
 
+        $event->load('organization');
+
+        // Officer identities are only relevant to event managers. Public
+        // consumers must never receive officer names or email addresses.
+        if (Gate::allows('manageOfficers', $event)) {
+            $event->load('officers');
+        }
+
         return response()->json([
-            'data' => new EventResource(
-                $event->load(['organization', 'officers']),
-            ),
+            'data' => new EventResource($event),
         ]);
     }
 

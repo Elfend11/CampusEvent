@@ -33,13 +33,7 @@ class UserController extends Controller
 
     public function store(StoreUserRequest $request): JsonResponse
     {
-        $user = User::create($request->safe()->only(['name', 'email', 'password']));
-
-        $this->syncRoles($user, $request->validated('roles'));
-
-        return response()->json([
-            'data' => new UserResource($user->load('roles')),
-        ], 201);
+        abort(403, 'Akun hanya dapat dibuat melalui registrasi mahasiswa atau seeder SUPER_ADMIN.');
     }
 
     public function show(User $user): JsonResponse

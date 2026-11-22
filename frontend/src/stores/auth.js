@@ -48,10 +48,26 @@ export const useAuthStore = defineStore('auth', {
       await axios.get('/sanctum/csrf-cookie', { withCredentials: true })
 
       const { data } = await api.post('/auth/register', payload)
-      this.user = data.data
-      this.initialized = true
 
-      return data.data
+      // Registration does not authenticate the user. The account must verify
+      // its email address with the OTP that was just sent.
+      return data
+    },
+
+    async verifyOtp(payload) {
+      await axios.get('/sanctum/csrf-cookie', { withCredentials: true })
+
+      const { data } = await api.post('/auth/verify-otp', payload)
+
+      return data
+    },
+
+    async resendOtp(payload) {
+      await axios.get('/sanctum/csrf-cookie', { withCredentials: true })
+
+      const { data } = await api.post('/auth/resend-otp', payload)
+
+      return data
     },
 
     async logout() {

@@ -4,8 +4,8 @@
 **Project:** CampusEvent  
 **Project Name:** Integrated Campus Event & Ticketing Management System  
 **Document:** Coding Rules & Engineering Standards  
-**Version:** 1.1  
-**Status:** Approved (Amendment 1)  
+**Version:** 1.2  
+**Status:** Approved (Amendment 2)  
 **Purpose:** Menjadi pedoman teknis dan standar pengembangan yang wajib dipatuhi selama proses implementasi CampusEvent.
 
 ---
@@ -390,6 +390,11 @@ Keamanan harus diterapkan pada seluruh lapisan sistem.
 8. Setiap request yang mengubah data wajib dilindungi CSRF.
 9. Session harus diregenerasi setelah login dan diinvalidasi saat logout.
 10. Cookie autentikasi menggunakan `HttpOnly`, `Secure` pada deployment HTTPS, dan `SameSite` yang sesuai.
+11. Registrasi mandiri tidak boleh membuat sesi login; pengguna wajib memverifikasi email terlebih dahulu.
+12. Kode OTP disimpan sebagai hash dan tidak boleh dicatat di log, respons API, atau repository.
+13. OTP wajib memiliki masa berlaku, batas percobaan, dan cooldown pengiriman ulang.
+14. Akun lama harus dimigrasikan sebagai terverifikasi agar tidak terkunci setelah verifikasi email diaktifkan.
+15. Respons API publik tidak boleh memuat email atau data pribadi petugas event.
 
 ### 8.2 Authorization and RBAC
 
@@ -662,6 +667,8 @@ Contoh:
 5. Periksa perubahan sebelum melakukan commit.
 6. Jangan melakukan force push pada branch bersama tanpa persetujuan.
 7. Pastikan kode dapat dijalankan berdasarkan dokumentasi proyek.
+8. Jangan menuliskan kredensial database atau SMTP secara hardcoded pada source code, termasuk `phpunit.xml`. Gunakan environment lokal atau secret CI.
+9. File `.env.example` hanya boleh memuat placeholder, bukan nilai secret nyata.
 
 ---
 
@@ -752,7 +759,9 @@ Setiap fitur harus melalui pemeriksaan sebelum dinyatakan selesai.
 - [ ] Database menggunakan migration dan constraint yang sesuai.
 - [ ] Operasi kritis menggunakan transaction.
 - [ ] Error handling dan logging tersedia.
-- [ ] Tidak ada data sensitif yang terekspos.
+- [ ] Tidak ada data sensitif yang terekspos, termasuk email petugas pada endpoint publik.
+- [ ] Kode OTP disimpan sebagai hash dan tidak muncul pada log atau respons.
+- [ ] Rate limit, masa berlaku, batas percobaan, dan cooldown OTP diuji.
 - [ ] Tidak ada kode debugging yang tertinggal.
 - [ ] Tidak merusak fitur yang sudah ada.
 
@@ -800,6 +809,8 @@ Sebuah fitur hanya dapat dinyatakan selesai apabila:
 | 1.1 | §8.2 | Multi-role dan cakupan akses berdasarkan penugasan | F-07 |
 | 1.1 | §11.1, §11.2 | `expires_at`, retry pembayaran, dan event gratis | F-02, F-04, F-08 |
 | 1.1 | §11.6 | Aturan pembatalan administratif | F-06 |
+| 1.2 | §8.1 | Verifikasi email OTP, hash kode, masa berlaku, batas percobaan, cooldown, dan backfill akun lama | F-14 |
+| 1.2 | §12.3, §14.1 | Larangan kredensial hardcoded dan checklist keamanan OTP/data petugas | F-14, F-15 |
 
 ---
 

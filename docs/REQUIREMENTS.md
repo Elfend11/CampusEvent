@@ -4,10 +4,10 @@
 ## Integrated Campus Event & Ticketing Management System
 
 **Document Type:** Software Requirements Specification (SRS)  
-**Version:** 1.1  
+**Version:** 1.2  
 **Project Type:** Vibe Coding Final Project  
 **Development Approach:** AI-Assisted Software Engineering  
-**Status:** Approved Specification (Amendment 1)
+**Status:** Approved Specification (Amendment 2)
 
 ---
 
@@ -200,12 +200,14 @@ Hak akses:
 
 | ID | Requirement |
 |---|---|
-| FR-01 | Sistem menyediakan registrasi akun mahasiswa. |
-| FR-02 | Sistem menyediakan login dan logout. |
+| FR-01 | Sistem menyediakan registrasi akun mahasiswa yang wajib diverifikasi melalui kode OTP enam digit yang dikirim ke email. |
+| FR-02 | Sistem menyediakan login dan logout; akun yang belum terverifikasi tidak dapat login. |
 | FR-03 | Sistem membedakan hak akses berdasarkan role. |
 | FR-04 | Sistem membatasi akses halaman berdasarkan otorisasi. |
 | FR-05 | Sistem melakukan validasi data autentikasi. |
 | FR-06 | Sistem menyimpan password dalam bentuk hash. |
+| FR-06A | Sistem mendukung kirim ulang OTP dengan cooldown, batas percobaan, dan masa berlaku kode. |
+| FR-06B | Akun lama yang sudah ada sebelum verifikasi email diaktifkan tetap dapat login tanpa OTP ulang. |
 
 ## 4.2 Organization Management
 
@@ -426,6 +428,8 @@ Sistem wajib menangani kondisi berikut:
 - NFR-04: Input pengguna harus divalidasi dan disanitasi sesuai konteks.
 - NFR-05: Sistem harus melindungi proses perubahan data dari akses yang tidak berwenang.
 - NFR-06: Data sensitif tidak boleh ditampilkan kepada pengguna yang tidak memiliki izin.
+- NFR-06A: Kode OTP harus disimpan dalam bentuk hash, memiliki masa berlaku, batas percobaan, dan cooldown pengiriman ulang.
+- NFR-06B: Respons API publik tidak boleh memuat data pribadi pengguna yang tidak berwenang, termasuk email petugas event.
 
 ## 7.2 Reliability and Data Integrity
 
@@ -557,7 +561,10 @@ Sistem dinyatakan memenuhi kebutuhan apabila:
 
 | ID | Acceptance Criteria | Expected Result |
 |---|---|---|
-| AC-01 | Mahasiswa melakukan registrasi | Akun berhasil dibuat |
+| AC-01 | Mahasiswa melakukan registrasi | Akun berhasil dibuat, kode OTP dikirim, dan pengguna belum login |
+| AC-01A | Mahasiswa memasukkan OTP valid | Email terverifikasi dan pengguna dapat login |
+| AC-01B | OTP salah, kedaluwarsa, atau melebihi batas percobaan | Verifikasi ditolak dan akun tetap belum terverifikasi |
+| AC-01C | Akun lama login setelah verifikasi email diaktifkan | Login berhasil tanpa OTP ulang |
 | AC-02 | Pengguna login | Sistem memberikan akses sesuai role |
 | AC-03 | Admin membuat event | Event tersimpan |
 | AC-04 | Mahasiswa melihat event | Informasi event tampil |
@@ -696,11 +703,14 @@ Setiap implementasi harus mengacu pada requirement yang telah ditetapkan. Jika d
 | 1.1 | §3 | Satu akun dapat memiliki beberapa role dan cakupan akses per penugasan | F-07 |
 | 1.1 | §4.5 | Pemetaan status pembayaran `PENDING`, `PAID`, `FAILED` | F-05 |
 | 1.1 | §9 | Entitas User Roles dan Event Officers | F-03, F-07 |
+| 1.2 | §4.1 | Registrasi wajib verifikasi email OTP dan login hanya untuk akun terverifikasi | F-14 |
+| 1.2 | §4.1 | Endpoint verifikasi dan kirim ulang OTP, kebijakan kedaluwarsa/percobaan/cooldown | F-14 |
+| 1.2 | §7.1 | OTP disimpan sebagai hash dan data petugas tidak diekspos ke publik | F-14, F-15 |
 
 **Project:** CampusEvent  
 **Document:** REQUIREMENTS.md  
-**Version:** 1.1  
-**Status:** Approved Specification (Amendment 1)
+**Version:** 1.2  
+**Status:** Approved Specification (Amendment 2)
 
 ---
 

@@ -3,10 +3,12 @@
 namespace Tests\Feature\Auth;
 
 use App\Enums\UserRole;
+use App\Mail\EmailVerificationCode;
 use App\Models\User;
 use App\Models\UserRoleAssignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
@@ -86,8 +88,10 @@ class AuthenticationTest extends TestCase
         $this->assertGuest('web');
     }
 
-    public function test_student_can_register_account(): void
+    public function test_student_can_register_account_without_being_logged_in(): void
     {
+        Mail::fake();
+
         $response = $this->postJson('/api/v1/auth/register', [
             'name' => 'Mahasiswa Baru',
             'email' => 'mahasiswa.baru@example.test',
@@ -97,19 +101,25 @@ class AuthenticationTest extends TestCase
 
         $response
             ->assertCreated()
-            ->assertJsonPath('data.name', 'Mahasiswa Baru')
             ->assertJsonPath('data.email', 'mahasiswa.baru@example.test')
-            ->assertJsonPath('data.roles', [UserRole::STUDENT->value]);
+            ->assertJsonPath('data.requires_email_verification', true)
+            ->assertJsonPath('data.email_sent', true);
 
         $user = User::where('email', 'mahasiswa.baru@example.test')->firstOrFail();
 
-        $this->assertAuthenticatedAs($user);
+        $this->assertGuest();
+        $this->assertNull($user->email_verified_at);
         $this->assertTrue(Hash::check('Password123!', $user->password));
         $this->assertNotSame('Password123!', $user->password);
         $this->assertDatabaseHas('user_roles', [
             'user_id' => $user->id,
             'role' => UserRole::STUDENT->value,
         ]);
+        $this->assertDatabaseHas('email_verification_codes', [
+            'user_id' => $user->id,
+            'attempts' => 0,
+        ]);
+        Mail::assertSent(EmailVerificationCode::class, 1);
     }
 
     public function test_registration_rejects_duplicate_email(): void
@@ -144,6 +154,8 @@ class AuthenticationTest extends TestCase
 
     public function test_registration_ignores_roles_sent_by_frontend(): void
     {
+        Mail::fake();
+
         $response = $this->postJson('/api/v1/auth/register', [
             'name' => 'Mahasiswa Nakal',
             'email' => 'nakal@example.test',
@@ -154,23 +166,22 @@ class AuthenticationTest extends TestCase
 
         $response
             ->assertCreated()
-            ->assertJsonPath('data.roles', [UserRole::STUDENT->value]);
+            ->assertJsonPath('data.email', 'nakal@example.test');
 
         $user = User::where('email', 'nakal@example.test')->firstOrFail();
         $this->assertFalse($user->hasRole(UserRole::SUPER_ADMIN));
         $this->assertTrue($user->hasRole(UserRole::STUDENT));
     }
 
-    public function test_multi_role_account_returns_all_roles(): void
+    public function test_student_account_returns_student_role(): void
     {
         $user = $this->userWithRole(UserRole::STUDENT, ['email' => 'multi@example.test']);
-        UserRoleAssignment::create(['user_id' => $user->id, 'role' => UserRole::CHECK_IN_OFFICER->value]);
 
         $response = $this->actingAs($user)->getJson('/api/v1/auth/user');
 
         $response->assertOk();
         $this->assertEqualsCanonicalizing(
-            ['STUDENT', 'CHECK_IN_OFFICER'],
+            ['STUDENT'],
             $response->json('data.roles'),
         );
     }

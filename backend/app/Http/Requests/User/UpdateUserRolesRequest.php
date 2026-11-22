@@ -2,9 +2,7 @@
 
 namespace App\Http\Requests\User;
 
-use App\Enums\UserRole;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdateUserRolesRequest extends FormRequest
 {
@@ -20,7 +18,7 @@ class UpdateUserRolesRequest extends FormRequest
     {
         return [
             'roles' => ['required', 'array', 'min:1'],
-            'roles.*' => ['string', Rule::enum(UserRole::class)],
+            'roles.*' => ['required', 'string', 'in:STUDENT'],
         ];
     }
 }

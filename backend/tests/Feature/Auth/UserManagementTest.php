@@ -38,26 +38,22 @@ class UserManagementTest extends TestCase
         $this->assertGreaterThanOrEqual(4, count($response->json('data')));
     }
 
-    public function test_super_admin_can_create_user_with_multiple_roles(): void
+    public function test_super_admin_cannot_create_user_through_user_management(): void
     {
         $admin = $this->userWithRole(UserRole::SUPER_ADMIN);
 
         $response = $this->actingAs($admin)->postJson('/api/v1/users', [
-            'name' => 'Petugas Ganda',
+            'name' => 'Akun Dilarang',
             'email' => 'officer@example.test',
             'password' => 'password123',
-            'roles' => ['STUDENT', 'CHECK_IN_OFFICER'],
+            'roles' => ['STUDENT'],
         ]);
 
-        $response->assertCreated()->assertJsonPath('data.email', 'officer@example.test');
-
-        $this->assertEqualsCanonicalizing(
-            ['STUDENT', 'CHECK_IN_OFFICER'],
-            $response->json('data.roles'),
-        );
+        $response->assertForbidden();
+        $this->assertDatabaseMissing('users', ['email' => 'officer@example.test']);
     }
 
-    public function test_super_admin_can_replace_user_roles(): void
+    public function test_super_admin_cannot_assign_administrator_role_through_user_management(): void
     {
         $admin = $this->userWithRole(UserRole::SUPER_ADMIN);
         $user = $this->userWithRole(UserRole::STUDENT);
@@ -66,9 +62,8 @@ class UserManagementTest extends TestCase
             'roles' => ['ORGANIZATION_ADMIN'],
         ]);
 
-        $response->assertOk()->assertJsonPath('data.roles', ['ORGANIZATION_ADMIN']);
-
-        $this->assertDatabaseMissing('user_roles', [
+        $response->assertStatus(422)->assertJsonValidationErrors('roles.0');
+        $this->assertDatabaseHas('user_roles', [
             'user_id' => $user->id,
             'role' => 'STUDENT',
         ]);
