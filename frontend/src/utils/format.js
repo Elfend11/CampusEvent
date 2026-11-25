@@ -9,6 +9,81 @@ export function formatDateTime(value) {
   }).format(new Date(value))
 }
 
+function safeDate(value) {
+  if (!value) {
+    return null
+  }
+
+  const date = new Date(value)
+
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+export function formatEventDay(value) {
+  const date = safeDate(value)
+
+  return date ? new Intl.DateTimeFormat('id-ID', { day: '2-digit' }).format(date) : '--'
+}
+
+export function formatEventMonth(value) {
+  const date = safeDate(value)
+
+  return date ? new Intl.DateTimeFormat('id-ID', { month: 'short' }).format(date).replace('.', '') : '---'
+}
+
+export function formatEventDate(value) {
+  const date = safeDate(value)
+
+  if (!date) {
+    return 'Jadwal menyusul'
+  }
+
+  return new Intl.DateTimeFormat('id-ID', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(date)
+}
+
+export function formatEventTime(value) {
+  const date = safeDate(value)
+
+  return date
+    ? new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit' }).format(date)
+    : '--.--'
+}
+
+export function formatEventMoment(value) {
+  const date = safeDate(value)
+
+  if (!date) {
+    return 'Jadwal menyusul'
+  }
+
+  return `${formatEventDate(value)} · ${formatEventTime(value)}`
+}
+
+export function isFutureDate(value) {
+  const date = safeDate(value)
+
+  return Boolean(date && date.getTime() > Date.now())
+}
+
+export function isDateWithin(value, start, end) {
+  const date = safeDate(value)
+
+  if (!date) {
+    return false
+  }
+
+  const now = Date.now()
+  const from = safeDate(start)
+  const to = safeDate(end)
+
+  return (!from || from.getTime() <= now) && (!to || now <= to.getTime())
+}
+
 export function formatPrice(value) {
   if (value === null || value === undefined) {
     return '-'
