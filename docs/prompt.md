@@ -553,4 +553,1280 @@ BATASAN:
 
 Setelah selesai, laporkan jumlah akun tersisa, role akun admin baru, data organisasi/event yang dipertahankan, status migration, hasil pengujian, serta file yang berubah.
 
-# 20 - 
+# 20 - # CampusEvent — UI/UX Refinement Phase 1: Frontend Audit
+
+Kita akan memulai tahap UI/UX Refinement CampusEvent.
+
+## Project Context
+CampusEvent adalah Integrated Campus Event & Ticketing Management System.
+
+Stack:
+- Frontend: Vue 3, Vite, Composition API, Pinia, Axios
+- Backend: Laravel REST API
+- Database: MySQL
+
+Design direction yang telah disepakati:
+- Modern, clean, premium, student-friendly
+- Student interface: modern event discovery platform
+- Admin interface: SaaS dashboard
+- Primary teal: #0F766E
+- Primary dark: #115E59
+- Background: #F8FAFC
+- Surface: #FFFFFF
+- Text: #0F172A
+- Muted: #64748B
+- Border: #E2E8F0
+- Accent: #14B8A6
+
+Responsive targets:
+- 360px
+- 390px
+- 768px
+- 1366px
+- 1440px
+
+## Tugas Fase Ini: AUDIT SAJA
+
+Jangan mengubah, membuat, menghapus, atau memindahkan file.
+
+Audit frontend CampusEvent saat ini dan laporkan:
+
+1. Struktur frontend dan routing.
+2. Layout dan halaman yang sudah tersedia.
+3. Kondisi homepage mahasiswa.
+4. Kondisi halaman event discovery dan event detail.
+5. Kondisi My Tickets dan profile.
+6. Kondisi dashboard Super Admin.
+7. Kondisi navigasi admin dan student.
+8. Kondisi responsive design.
+9. Kondisi UI components yang reusable.
+10. Konsistensi design system dan warna.
+11. Loading, error, empty state, dan feedback UI.
+12. Accessibility dasar.
+13. Halaman atau fitur yang belum tersedia.
+14. Masalah UI/UX yang ditemukan berdasarkan source code.
+
+## Aturan Penting
+
+- Jangan mengubah business logic.
+- Jangan mengubah backend, API, database, migration, auth, reservation, payment, ticket, QR, atau concurrency.
+- Jangan mengubah file apa pun pada tahap audit.
+- Jangan commit, push, merge, atau checkout branch.
+- Jangan mengarang hasil audit. Semua temuan harus berdasarkan source code yang diperiksa.
+- Pertahankan perubahan existing dan jangan menghapus pekerjaan sebelumnya.
+
+## Output
+
+Buat laporan audit terstruktur:
+
+A. Current UI Inventory
+B. UI/UX Issues
+C. Responsive Issues
+D. Missing UI Features
+E. Recommended Refinement Order
+F. Proposed Phase Breakdown
+
+Setelah laporan selesai, berhenti dan tunggu persetujuan sebelum implementasi.
+
+Fase berikutnya akan dimulai dari Student Homepage dan Event Discovery.
+
+# 21 - # CampusEvent — Phase 2: UI/UX Transformation (Design Foundation & Student Homepage)
+
+## Context
+
+CampusEvent is an Integrated Campus Event & Ticketing Management System built with Vue 3, Vite, Pinia, Axios, Laravel REST API, and MySQL.
+
+The application already has its core business functionality, including authentication, email OTP verification, event discovery, event registration, payment simulation, digital tickets, QR validation, check-in, organization management, and reporting.
+
+A frontend audit has already been completed. The current frontend is functional but visually immature. It lacks a cohesive design system, a dedicated student experience, a proper responsive navigation system, reusable UI components, and a polished visual identity.
+
+This phase is a serious UI/UX transformation, not a minor styling update.
+
+---
+
+## 1. Design Direction
+
+Use the attached UI/UX reference image as a benchmark for visual quality, composition, refinement, spacing, hierarchy, usability, and overall design feel.
+
+The reference is NOT a template to copy literally.
+
+Do not blindly reproduce its layout, structure, or individual components. Understand the design principles behind it and apply them creatively to CampusEvent.
+
+CampusEvent must have its own identity as a modern campus event discovery and ticketing platform.
+
+The desired result should feel like a polished, contemporary, premium digital product rather than a typical student project website.
+
+### Design qualities:
+
+- Modern, clean, sophisticated, and visually engaging.
+- Strong visual hierarchy and deliberate composition.
+- Thoughtful spacing and typography.
+- Visually distinctive sections rather than repetitive generic cards.
+- Balanced use of color, whitespace, imagery, typography, and shapes.
+- Subtle and meaningful interactions.
+- Responsive layouts designed for mobile, tablet, and desktop.
+- Intuitive and accessible user experience.
+- Consistent visual language across all components.
+- Professional UI without unnecessary complexity.
+- Creative design decisions appropriate to the product.
+
+Do not use generic dashboard templates or blindly generate repetitive card-grid layouts.
+
+Do not make every section look identical.
+
+The design should feel intentionally designed.
+
+---
+
+## 2. CampusEvent Visual Identity
+
+Use the previously agreed color direction as the foundation.
+
+- Primary: #0F766E
+- Primary Dark: #115E59
+- Accent: #14B8A6
+- Background: #F8FAFC
+- Surface: #FFFFFF
+- Text: #0F172A
+- Muted: #64748B
+- Border: #E2E8F0
+
+You may introduce carefully selected complementary colors for event categories, illustrations, status indicators, and decorative elements, provided they remain harmonious with the core brand.
+
+Do not let the interface revert to the previous blue-based design.
+
+Create a cohesive design system with:
+
+- Color tokens.
+- Typography scale.
+- Spacing scale.
+- Border radius scale.
+- Shadow system.
+- Button variants.
+- Input and form styling.
+- Status badges.
+- Responsive rules.
+- Interaction states.
+- Focus states.
+
+Load and use a suitable font properly. Inter is acceptable, but you may choose an equally appropriate font if it improves the design.
+
+---
+
+## 3. Scope of This Phase
+
+Implement Phase 2 only.
+
+### A. Design Foundation
+
+Create the foundational design system and establish consistent visual styling across the components and pages involved in this phase.
+
+Implement:
+
+- Design tokens.
+- Typography system.
+- Spacing and layout rules.
+- Button system.
+- Card primitives where appropriate.
+- Badge primitives.
+- Input primitives.
+- Loading skeletons.
+- Empty states.
+- Error states.
+- Reusable UI components.
+- Accessible focus states.
+- Consistent interaction feedback.
+
+Avoid creating unnecessary components just for abstraction. Components should be reusable, maintainable, and practical.
+
+### B. Student Layout
+
+Create a dedicated Student Layout and a proper student-facing navigation experience.
+
+The student interface must be distinct from administrative interfaces.
+
+Design the navigation based on usability and visual quality. You are free to determine the appropriate arrangement of navigation elements, including desktop navigation and mobile navigation.
+
+The navigation must be responsive and usable on small screens.
+
+Do not simply shrink desktop navigation to fit mobile.
+
+### C. Student Homepage
+
+Replace the current health-check homepage with an actual student-oriented event discovery homepage.
+
+The homepage must serve as the primary entry point for students discovering campus events.
+
+Design the page creatively and thoughtfully.
+
+Consider appropriate elements such as:
+
+- A compelling hero section.
+- Clear value proposition.
+- Search and discovery.
+- Event categories.
+- Featured events.
+- Upcoming events.
+- Free events.
+- Relevant event highlights.
+- Meaningful calls to action.
+- Appropriate contextual content.
+- A coherent flow from discovery to event detail.
+
+These are design possibilities, not a rigid mandatory layout.
+
+You are encouraged to make design decisions based on the available data, the product context, and visual composition.
+
+Use existing event data from the backend where appropriate.
+
+Do not fabricate event data and present it as real data.
+
+If a visual section requires data that is unavailable, design a graceful fallback.
+
+The current health-check functionality must not remain the centerpiece of the student homepage. Relocate it to an appropriate development or diagnostic location if necessary, without disrupting its existing functionality.
+
+### D. Homepage Components
+
+Build reusable components required for the homepage and its design foundation.
+
+Components should be implemented according to actual needs rather than creating an unnecessarily large component library.
+
+### E. Responsive Design
+
+The implementation must be designed and verified against the following viewport widths:
+
+- 360px
+- 390px
+- 768px
+- 1366px
+- 1440px
+
+Ensure:
+
+- No unintended horizontal overflow.
+- No overlapping elements.
+- No broken navigation.
+- Proper typography scaling.
+- Appropriate spacing.
+- Appropriate component resizing.
+- Proper mobile interaction.
+- Comfortable touch targets.
+- Responsive event presentation.
+- Responsive navigation.
+
+Mobile must feel like a deliberately designed experience, not an afterthought.
+
+---
+
+## 4. Technical Constraints
+
+The existing application architecture and business logic must remain intact.
+
+Do not modify:
+
+- Backend business logic.
+- Database schema.
+- Migrations.
+- Authentication logic.
+- Email OTP logic.
+- Sanctum authentication flow.
+- API contracts.
+- Registration transaction logic.
+- Reservation quota logic.
+- Payment confirmation logic.
+- Reservation expiration logic.
+- QR token generation.
+- Ticket validation logic.
+- Check-in logic.
+- Concurrency controls.
+- Existing backend services.
+
+Do not introduce backend changes to support visual improvements in this phase.
+
+Use existing API endpoints and data structures.
+
+If a feature cannot be implemented with the existing API contract, do not invent a backend solution. Gracefully handle the limitation and document it.
+
+Do not replace the application architecture.
+
+Do not introduce a new UI framework or major dependency without a clear justification.
+
+Prefer lightweight, maintainable implementations.
+
+---
+
+## 5. Implementation Rules
+
+- Inspect the existing code before modifying it.
+- Respect the existing Vue 3 Composition API and project conventions.
+- Preserve existing functionality.
+- Do not unnecessarily rewrite unrelated pages.
+- Do not remove existing features.
+- Do not alter unrelated files.
+- Preserve pre-existing working tree changes.
+- Do not reset, discard, overwrite, or revert existing user changes.
+- Do not perform database destructive operations.
+- Do not create migrations.
+- Do not commit or push.
+- Do not merge branches.
+- Do not change branches.
+- Do not modify backend files.
+
+The implementation should be clean, maintainable, and production-minded.
+
+Avoid:
+
+- Excessive CSS duplication.
+- Giant monolithic components.
+- Unnecessary abstractions.
+- Generic placeholder UI.
+- Hardcoded fake statistics.
+- Fake event content presented as real data.
+- Excessive animation.
+- Inaccessible interactions.
+- Default browser styling.
+- Arbitrary inconsistent spacing.
+- Repetitive card layouts.
+- Unnecessary dependencies.
+
+---
+
+## 6. Quality Expectations
+
+This is a UI/UX redesign. Do not treat it as a color replacement task.
+
+The result must demonstrate a meaningful improvement in:
+
+- Visual identity.
+- Design hierarchy.
+- Layout composition.
+- Navigation.
+- Usability.
+- Responsive behavior.
+- Consistency.
+- Accessibility.
+- Interaction feedback.
+- Component quality.
+
+The homepage should feel like a real campus event platform that students would genuinely want to use.
+
+Use creative judgment. Do not constrain yourself to a predetermined wireframe if a better design solution is possible.
+
+The reference image should influence the overall level of polish, not limit your creativity.
+
+---
+
+## 7. Definition of Done
+
+Phase 2 is complete when:
+
+1. A cohesive CampusEvent design foundation has been implemented.
+2. The agreed teal brand identity is applied consistently in the areas touched by this phase.
+3. The student interface has a dedicated responsive layout.
+4. The homepage has been transformed into an actual event discovery experience.
+5. The homepage uses existing backend data appropriately.
+6. Reusable components have been implemented where useful.
+7. The health-check functionality is no longer the primary homepage content.
+8. Responsive behavior has been verified at 360, 390, 768, 1366, and 1440px.
+9. No unintended horizontal overflow exists at the tested breakpoints.
+10. Existing authentication and route behavior remain intact.
+11. Existing business logic and API contracts remain unchanged.
+12. Loading, error, and empty states are handled appropriately.
+13. The implementation does not introduce unnecessary dependencies or unrelated modifications.
+14. Existing user changes remain untouched.
+
+---
+
+## 8. Final Report
+
+After implementation, provide a concise but detailed report containing:
+
+A. Files modified and created.
+
+B. Design system implemented.
+
+C. Student layout changes.
+
+D. Homepage design and implemented sections.
+
+E. Reusable components created.
+
+F. Responsive behavior and tested breakpoints.
+
+G. Functional features preserved.
+
+H. Tests, build, or verification results.
+
+I. Any limitations or incomplete items.
+
+J. Any recommendations for Phase 3.
+
+Do not proceed to Phase 3.
+
+Stop after Phase 2 is complete and wait for approval.
+
+# 22 - # CampusEvent — Handover Verification & Phase 2 UI/UX Implementation
+
+We are continuing the CampusEvent project after OpenCode completed a frontend audit but ran out of usage limits.
+
+You are taking over the work from OpenCode. Do NOT assume that its audit was fully implemented. First, inspect and verify what OpenCode actually did, then continue the approved work.
+
+## 1. Project Context
+
+Project: CampusEvent — Integrated Campus Event & Ticketing Management System.
+
+Stack:
+- Vue 3 Composition API
+- Vite
+- Pinia
+- Vue Router
+- Axios
+- Laravel REST API
+- MySQL
+- Sanctum authentication
+
+The frontend audit completed by OpenCode identified the application as functional but lacking a mature UI/UX design.
+
+The audit covered:
+- Frontend architecture and file structure.
+- Routes and navigation.
+- Student experience.
+- Admin experience.
+- Design system.
+- Responsive behavior.
+- Accessibility.
+- UI feedback.
+- Missing frontend features.
+- Recommended refinement phases.
+
+The audit proposed Phase 2 as:
+
+1. Design foundation.
+2. Teal design tokens and typography.
+3. Student layout and responsive navigation.
+4. Student homepage redesign.
+5. Event discovery-oriented homepage using existing GET /events data.
+6. Reusable homepage components.
+7. Move health-check functionality away from the homepage.
+8. Responsive verification.
+
+The audit explicitly stopped before implementation.
+
+## 2. First: Verify the Previous OpenCode Work
+
+Before modifying anything, inspect the current project state.
+
+Inspect:
+
+- Current Git branch.
+- git status.
+- git diff.
+- Existing uncommitted changes.
+- Existing commits relevant to the previous work.
+- The frontend source structure.
+- The audit report, if saved inside the project.
+- docs/prompt.md and relevant project documentation, if applicable.
+- The current HomeView.vue.
+- DefaultLayout.vue.
+- App.vue.
+- Router configuration.
+- Global CSS.
+- Existing reusable components.
+- Relevant API service and event data structure.
+- Existing frontend package dependencies.
+
+The previous OpenCode audit reported the following findings. Verify these against the actual source rather than blindly trusting them:
+
+- Homepage is primarily a health-check page.
+- Primary colors still use blue.
+- No cohesive design system exists.
+- Student and admin use the same layout.
+- Responsive navigation is insufficient.
+- Reusable components are minimal.
+- Event discovery is visually basic.
+- Loading, error, and empty states need improvement.
+- There is no proper student event discovery homepage.
+
+Do not repeat the entire audit unnecessarily. Use the audit as a starting point and verify only what is necessary for the handover.
+
+### Handover report
+
+Before implementation, briefly report:
+
+A. Current branch and Git status.
+
+B. Previous OpenCode work verified.
+
+C. Existing changes that must be preserved.
+
+D. Whether Phase 2 can safely proceed.
+
+Do not reset, discard, revert, overwrite, or clean existing changes.
+
+Once verification is complete, proceed to Phase 2 implementation unless a serious conflict, missing prerequisite, or risk requires my approval first.
+
+## 3. Design Direction
+
+CampusEvent needs a serious UI/UX transformation.
+
+Use the previously provided UI/UX reference image as a benchmark for the quality, polish, composition, hierarchy, spacing, usability, and overall feel.
+
+The reference is NOT a template to copy.
+
+Do not blindly replicate its layout or components.
+
+Instead, use its visual quality as inspiration and create a distinctive design identity appropriate for CampusEvent.
+
+Desired qualities:
+
+- Modern.
+- Clean.
+- Premium.
+- Creative.
+- Professional.
+- Intuitive.
+- Visually engaging.
+- Responsive.
+- Accessible.
+- Carefully composed.
+- Consistent.
+
+Avoid generic template designs and repetitive card layouts.
+
+The interface should look intentionally designed rather than assembled from default components.
+
+Use your own design judgment.
+
+## 4. CampusEvent Design Foundation
+
+Use this previously agreed color palette:
+
+- Primary: #0F766E
+- Primary Dark: #115E59
+- Accent: #14B8A6
+- Background: #F8FAFC
+- Surface: #FFFFFF
+- Text: #0F172A
+- Muted: #64748B
+- Border: #E2E8F0
+
+Create a cohesive design foundation including:
+
+- Color tokens.
+- Typography.
+- Spacing.
+- Radius.
+- Shadows.
+- Responsive rules.
+- Button styles.
+- Input styles.
+- Status badge styles.
+- Focus states.
+- Interaction feedback.
+
+You may introduce complementary colors where appropriate, especially for event categories, visual accents, and status indicators, without compromising the core brand.
+
+Do not revert to the previous blue-based identity.
+
+## 5. Phase 2 Implementation
+
+### A. Design Foundation
+
+Implement a practical, maintainable design system.
+
+Create reusable UI components where they genuinely improve consistency and maintainability.
+
+Examples may include:
+
+- Buttons.
+- Form fields.
+- Cards.
+- Badges.
+- Skeletons.
+- Empty states.
+- Alerts.
+- Page headings.
+
+Do not overengineer the component library.
+
+### B. Student Layout
+
+Create a dedicated student-facing layout.
+
+Design a navigation system that is appropriate for the product, including desktop and mobile experiences.
+
+You have creative freedom to determine the best navigation arrangement.
+
+Mobile navigation must be deliberately designed for mobile usability.
+
+Do not merely shrink desktop navigation.
+
+### C. Student Homepage
+
+Transform the existing homepage into a real event discovery experience.
+
+The homepage should make students immediately understand CampusEvent and discover events easily.
+
+You may creatively design sections such as:
+
+- Hero.
+- Event search.
+- Event categories.
+- Featured events.
+- Upcoming events.
+- Free events.
+- Event highlights.
+- Discovery sections.
+- Calls to action.
+
+These are suggestions, not a rigid layout.
+
+Use real data from the existing API wherever possible.
+
+Do not fabricate statistics, event data, or real platform information.
+
+Gracefully handle missing data.
+
+The current health-check functionality must not remain the primary homepage experience. Move it to an appropriate diagnostic or development area if necessary without breaking it.
+
+### D. Responsive Implementation
+
+Design and verify the implementation at:
+
+- 360px.
+- 390px.
+- 768px.
+- 1366px.
+- 1440px.
+
+Ensure:
+
+- No unintended horizontal overflow.
+- No overlapping content.
+- No broken navigation.
+- Appropriate typography scaling.
+- Appropriate spacing.
+- Responsive layout composition.
+- Comfortable touch targets.
+- Proper mobile navigation.
+
+Mobile must feel like a dedicated experience.
+
+## 6. Technical Guardrails
+
+This is a frontend UI/UX task.
+
+DO NOT modify:
+
+- Backend business logic.
+- Database schema.
+- Migrations.
+- Authentication logic.
+- OTP verification logic.
+- Sanctum authentication flow.
+- API contracts.
+- Reservation transaction logic.
+- Quota logic.
+- Payment confirmation.
+- Expiration logic.
+- QR generation.
+- Ticket validation.
+- Check-in logic.
+- Concurrency control.
+- Backend services.
+
+Use the existing API and data contracts.
+
+Do not introduce backend changes to solve frontend design problems.
+
+Do not replace the project architecture.
+
+Do not introduce unnecessary dependencies.
+
+Preserve existing user changes and work.
+
+Do not:
+
+- Reset the repository.
+- Discard existing changes.
+- Overwrite unrelated files.
+- Commit.
+- Push.
+- Merge.
+- Change branches.
+- Perform destructive database operations.
+- Create migrations.
+
+## 7. Implementation Quality
+
+Do not treat this as a simple color replacement.
+
+The result should represent a substantial visual improvement.
+
+Prioritize:
+
+- Visual hierarchy.
+- Layout composition.
+- Design consistency.
+- User experience.
+- Navigation.
+- Responsive design.
+- Accessibility.
+- Interaction feedback.
+- Maintainability.
+
+Use appropriate loading, empty, and error states.
+
+Avoid unnecessary animations and excessive decorative elements.
+
+Avoid giant monolithic Vue components.
+
+Avoid duplicated CSS patterns.
+
+Avoid fake content presented as real information.
+
+## 8. Verification
+
+After implementation:
+
+- Run the frontend build.
+- Verify routes and existing functionality relevant to the changes.
+- Verify responsive layouts at the requested viewport widths if browser tools are available.
+- Identify any potential regressions.
+- Verify that backend files were not modified.
+- Verify that business logic was not altered.
+- Verify that existing user changes were preserved.
+
+If browser verification is unavailable, clearly distinguish source-level verification from actual browser testing.
+
+## 9. Final Report
+
+Report:
+
+A. Handover verification.
+
+B. Files modified and created.
+
+C. Design system implemented.
+
+D. Student layout and navigation changes.
+
+E. Homepage sections and design.
+
+F. Reusable components.
+
+G. Responsive verification.
+
+H. Build and test results.
+
+I. Functional behavior preserved.
+
+J. Remaining limitations.
+
+K. Recommended next phase.
+
+Stop after Phase 2. Do not begin Phase 3 without approval.
+
+Work carefully and prioritize a polished, cohesive, maintainable implementation.
+
+# 23 - CampusEvent — Authentication Regression Diagnosis
+
+After the recent Phase 2 UI/UX implementation, I am experiencing authentication problems.
+
+Symptoms:
+
+Registration fails and displays: "Tidak dapat membuat akun. Periksa koneksi ke server."
+
+I also cannot log in using an existing account.
+
+These issues appeared while continuing frontend work.
+
+I suspect a possible frontend/backend connectivity issue, API configuration issue, or regression, but do not assume the cause.
+
+Task: Diagnose First, Do Not Fix Yet
+
+Investigate the registration and login failures.
+
+Inspect:
+
+Frontend API configuration in frontend/src/services/api.js.
+
+Axios configuration, baseURL, cookies, credentials, and Sanctum-related configuration.
+
+Vite proxy configuration.
+
+Laravel backend availability.
+
+Laravel routes related to:
+
+Registration.
+
+Login.
+
+OTP verification.
+
+User authentication.
+
+Logout.
+
+Frontend LoginView and RegisterView.
+
+Authentication store (Pinia).
+
+Router guards and authentication initialization.
+
+Console errors and network request behavior if browser tools are available.
+
+Laravel logs for relevant errors.
+
+Whether the recent Phase 2 changes accidentally modified any authentication-related files.
+
+Whether authentication failures are caused by frontend connectivity, backend server state, API configuration, session/cookie configuration, or actual authentication logic.
+
+Diagnostic Requirements
+
+Determine:
+
+Whether the frontend can reach Laravel.
+
+Whether the API requests are being sent to the correct endpoint.
+
+Whether requests are failing before reaching Laravel.
+
+HTTP status codes for failed requests.
+
+Whether the backend logs show corresponding requests.
+
+Whether login and registration requests are malformed.
+
+Whether session cookies or CSRF handling are involved.
+
+Whether any authentication-related files were modified during recent UI work.
+
+Do not expose, print, or request secret credentials.
+
+Strict Guardrails
+
+DO NOT modify any files yet.
+
+DO NOT modify authentication logic.
+
+DO NOT modify OTP logic.
+
+DO NOT modify Sanctum configuration.
+
+DO NOT modify API contracts.
+
+DO NOT modify database schema.
+
+DO NOT run migrations.
+
+DO NOT reset the database.
+
+DO NOT delete accounts.
+
+DO NOT reset, discard, or overwrite existing changes.
+
+DO NOT commit or push.
+
+Final Report
+
+Report:
+
+A. Root cause, if established.
+
+B. Evidence supporting the diagnosis.
+
+C. Failed request endpoint and status code, if available.
+
+D. Relevant backend log findings.
+
+E. Files potentially responsible.
+
+F. Recommended minimal fix.
+
+G. Whether the issue appears related to the recent UI/UX implementation.
+
+Stop after diagnosis and wait for approval before implementing any fix.
+
+# 24 - CampusEvent — Fix Local Frontend/Backend Proxy Mismatch
+
+The authentication failure diagnosis is complete. The root cause has been established.
+
+Confirmed Root Cause
+
+Frontend Vite proxy currently targets port 8000.
+
+Port 8000 is occupied by a Node/OpenCode mock server, not Laravel.
+
+The actual Laravel backend is running on port 8001.
+
+Requests to /sanctum/csrf-cookie through the current frontend proxy return 404.
+
+Laravel on port 8001 correctly returns 204 for /sanctum/csrf-cookie and sets the expected CSRF/session cookies.
+
+Login and registration POST requests were never reached because the CSRF prerequisite failed.
+
+The frontend is currently accessed through 127.0.0.1, while the Laravel cookie configuration references localhost, creating a potential cookie-host mismatch.
+
+Approved Fix
+
+Implement the minimal local development configuration fix.
+
+1. Vite Proxy
+
+Inspect frontend/vite.config.js.
+
+Update the existing proxy configuration for both:
+
+/api
+
+/sanctum
+
+so that both proxy to the actual Laravel backend on port 8001.
+
+Preserve existing proxy behavior, including path handling and headers, where applicable.
+
+Do not unnecessarily rewrite the entire Vite configuration.
+
+2. Consistent Local Hostname
+
+Use localhost consistently for the local frontend and backend workflow where applicable, to align with the existing cookie configuration.
+
+Inspect the relevant configuration and identify whether any minimal adjustment is needed.
+
+Do not make unnecessary Laravel session, Sanctum, or CORS configuration changes.
+
+Do not introduce a cookie-domain change unless it is necessary and supported by the configuration findings.
+
+3. Preserve Existing Authentication
+
+Do not modify:
+
+Login logic.
+
+Registration logic.
+
+OTP logic.
+
+Authentication store.
+
+Auth controllers.
+
+Request validation.
+
+API contracts.
+
+Database schema.
+
+Database contents.
+
+Migrations.
+
+Session logic.
+
+Sanctum authentication logic.
+
+The goal is to correct the local server/proxy mismatch, not rewrite authentication.
+
+4. Verification
+
+After the minimal fix:
+
+Verify /api/v1/health through the frontend proxy reaches Laravel on port 8001.
+
+Verify /sanctum/csrf-cookie through the frontend proxy returns the expected response and cookie names.
+
+Verify that the frontend is not accidentally reaching the Node/OpenCode mock server on port 8000.
+
+Check whether hostname consistency is maintained.
+
+Do not submit real login or registration credentials during automated verification.
+
+Do not create accounts.
+
+Do not modify the database.
+
+5. Git Safety
+
+Preserve all existing working tree changes.
+
+Do not reset or discard files.
+
+Do not commit.
+
+Do not push.
+
+Do not merge.
+
+Do not switch branches.
+
+6. Final Report
+
+Report:
+
+A. Files changed.
+
+B. Exact proxy changes.
+
+C. Verification results.
+
+D. Whether the cookie-host mismatch was addressed or remains a potential issue.
+
+E. Instructions for starting the frontend and backend locally.
+
+Stop after the fix and verification.
+
+Do not make additional UI/UX changes.
+
+# 25 - # CampusEvent — Populate 20 Demo Events (10 Free, 10 Paid)
+
+I want to populate CampusEvent with 20 realistic demo events for frontend testing, UI/UX demonstration, and event discovery.
+
+## Objective
+
+Add exactly 20 realistic demo events:
+
+- 10 free events.
+- 10 paid events.
+
+These events are dummy content intended for local development and demonstration only.
+
+## Event Data
+
+### FREE EVENTS (10)
+
+1. TechTalk: AI di Dunia Pendidikan
+   Category: Seminar / Technology
+   Price: 0
+   Description: Diskusi pemanfaatan AI dalam pembelajaran, riset, dan dunia akademik.
+
+2. Web Development Starter Workshop
+   Category: Workshop / IT
+   Price: 0
+   Description: Pengenalan dasar HTML, CSS, dan JavaScript untuk mahasiswa pemula.
+
+3. Speak Up! Public Speaking Class
+   Category: Workshop / Personal Development
+   Price: 0
+   Description: Belajar menyampaikan ide, mengatasi gugup, dan membangun kepercayaan diri.
+
+4. Cyber Security Awareness
+   Category: Seminar / Technology
+   Price: 0
+   Description: Mengenal phishing, keamanan akun, privasi digital, dan cyber hygiene.
+
+5. Campuspreneur Talk
+   Category: Seminar / Entrepreneurship
+   Price: 0
+   Description: Sharing pengalaman membangun usaha dari ide sederhana di lingkungan kampus.
+
+6. Career Preparation Day
+   Category: Seminar / Career
+   Price: 0
+   Description: Persiapan CV, LinkedIn, portofolio, dan menghadapi interview kerja.
+
+7. Student Research Forum
+   Category: Forum / Academic
+   Price: 0
+   Description: Forum presentasi dan diskusi ide penelitian mahasiswa lintas jurusan.
+
+8. Lens of Campus Photography Exhibition
+   Category: Exhibition / Art
+   Price: 0
+   Description: Pameran karya fotografi mahasiswa dengan tema kehidupan kampus.
+
+9. Green Campus Action
+   Category: Volunteer / Environment
+   Price: 0
+   Description: Aksi kolaboratif untuk menjaga kebersihan dan lingkungan kampus.
+
+10. Acoustic Night: Student Edition
+    Category: Entertainment / Music
+    Price: 0
+    Description: Malam musik akustik dan penampilan kreatif mahasiswa.
+
+### PAID EVENTS (10)
+
+11. UI/UX Design Bootcamp
+    Category: Workshop / Design
+    Price: 50000
+    Description: Workshop praktis membuat wireframe dan prototype aplikasi menggunakan Figma.
+
+12. CodeFest: Coding Challenge
+    Category: Competition / IT
+    Price: 35000
+    Description: Kompetisi pemrograman untuk menguji logika dan problem-solving peserta.
+
+13. Digital Marketing Masterclass
+    Category: Workshop / Marketing
+    Price: 75000
+    Description: Strategi social media, branding, content planning, dan pemasaran digital.
+
+14. Photography Fundamentals
+    Category: Workshop / Photography
+    Price: 40000
+    Description: Belajar komposisi, pencahayaan, dan teknik fotografi dasar.
+
+15. Startup Idea Competition
+    Category: Competition / Business
+    Price: 25000
+    Description: Kompetisi ide startup dengan presentasi business model dan pitching.
+
+16. Creative Writing Workshop
+    Category: Workshop / Literature
+    Price: 30000
+    Description: Eksplorasi teknik menulis cerita, karakter, dialog, dan narasi.
+
+17. Data Analytics with Excel
+    Category: Workshop / Data
+    Price: 60000
+    Description: Praktik pengolahan data, visualisasi, dan analisis menggunakan Excel.
+
+18. Student Leadership Camp
+    Category: Training / Leadership
+    Price: 100000
+    Description: Pelatihan kepemimpinan, teamwork, komunikasi, dan manajemen organisasi.
+
+19. Robotics & IoT Workshop
+    Category: Workshop / Technology
+    Price: 85000
+    Description: Pengenalan konsep IoT, sensor, dan prototipe perangkat sederhana.
+
+20. Campus Music Fest
+    Category: Festival / Music
+    Price: 125000
+    Description: Festival musik dengan penampilan band, musisi lokal, dan komunitas kampus.
+
+---
+
+## 1. Inspect the Existing Database Structure First
+
+Before implementation:
+
+- Inspect the existing Event model.
+- Inspect the events migration.
+- Inspect any related category model or category schema.
+- Inspect the existing event creation logic and service layer.
+- Inspect quota, reserved_count, sold_count, registration, and ticket logic.
+- Inspect event status and publishing requirements.
+- Inspect required fields and validation rules.
+- Inspect any organization ownership requirements.
+- Inspect existing seeders and factory conventions.
+
+Do not assume the schema.
+
+Adapt the demo data to the actual database structure.
+
+Do not modify the database schema.
+
+## 2. Seeder Implementation
+
+Create an appropriate dedicated seeder for demo events, following existing Laravel conventions.
+
+The seeder must:
+
+- Create exactly the 20 intended demo events when executed in a clean demo-data context.
+- Include exactly 10 free events and 10 paid events.
+- Use realistic event titles, descriptions, categories, locations, capacities, and event dates.
+- Use future event dates relative to the execution date.
+- Use realistic registration deadlines before the event dates.
+- Ensure event dates, deadlines, and statuses satisfy existing application constraints.
+- Populate any required organization ownership fields using a valid existing organization, if required by the schema.
+- Populate any required image fields using safe placeholders or existing supported image conventions, if necessary.
+- Use valid values for all required fields.
+- Ensure all events are discoverable through the existing API.
+- Preserve existing business logic and schema.
+
+If the system requires an organization, inspect the existing organization records and use an appropriate valid organization only if safe to do so. Do not create unrelated accounts or organizations unless required and explicitly justified.
+
+## 3. Seeder Safety and Idempotency
+
+This is a development/demo-data task.
+
+The seeder must not delete or overwrite existing real events.
+
+Use a reliable way to distinguish these demo records from existing records, such as a stable identifier or carefully designed seeder convention, using the existing schema.
+
+If the schema does not provide a safe way to distinguish demo events, report the limitation and propose a safe approach before modifying existing records.
+
+Do not use:
+
+- DB wipe.
+- migrate:fresh.
+- Truncate.
+- Bulk deletion of events.
+- Destructive operations.
+- Database resets.
+
+Do not seed payment transactions, registrations, tickets, QR codes, or check-in records.
+
+## 4. Data Quality
+
+Ensure:
+
+- Titles are distinct.
+- Descriptions are meaningful.
+- Prices are exactly 0 for free events.
+- Paid event prices match the supplied list.
+- All 20 events are future events.
+- Dates are distributed realistically across upcoming weeks.
+- Capacity values are realistic.
+- Free events and paid events are both discoverable.
+- Demo content is clearly distinguishable from real event content where feasible.
+- Do not fabricate real organizations, speakers, or sponsors.
+
+Locations may use plausible campus venues in Samarinda, Indonesia, such as campus auditoriums, seminar rooms, laboratories, or outdoor campus areas, but these are fictional event listings for demo purposes.
+
+## 5. Verification
+
+After implementation:
+
+- Run the seeder using a safe, targeted command.
+- Do not run the entire database seeding pipeline if it may modify unrelated data.
+- Verify that exactly 20 demo events exist.
+- Verify that exactly 10 have price 0.
+- Verify that exactly 10 have a positive price.
+- Verify that all demo events have future dates.
+- Verify the existing event API can retrieve them.
+- Verify the homepage/discovery can display them.
+- Do not modify backend transaction or reservation logic.
+- Do not create registrations or payments.
+
+## 6. Git Safety
+
+- Preserve existing changes.
+- Do not reset or discard working tree changes.
+- Do not commit.
+- Do not push.
+- Do not merge.
+- Do not switch branches.
+- Do not perform destructive database operations.
+
+## 7. Final Report
+
+Report:
+
+A. Files created or modified.
+
+B. Seeder implementation details.
+
+C. Event count.
+
+D. Free versus paid count.
+
+E. Date distribution.
+
+F. Verification results.
+
+G. API verification.
+
+H. Any limitations.
+
+I. Exact command I should run if I need to seed the demo events again.
+
+Stop after the demo events are populated and verified.
+
+Do not proceed with other UI changes.
+
+# 26 -
